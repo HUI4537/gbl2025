@@ -54,22 +54,27 @@ func main() {
 	db.AutoMigrate(&problem.Problem{})
 	db.AutoMigrate(&notification.Notification{})
 
-	// 등록할 새 비밀번호
-	password := "fingbl2024der"
-
+	// 등록할 비밀번호 목록들
+	passwords := []string{
+		"fingbl2024der",
+		"Test",
+		// 필요한 만큼 비밀번호를 추가
+	}
 	// 기존 어드민 비밀번호 삭제
 	err = booth.DeletePasswordByBID("admin")
 	if err != nil {
 		log.Fatalf("Failed to delete existing admin passwords: %v", err)
 	}
 
-	// 새로운 비밀번호 등록
-	err = booth.AddPassword(password)
-	if err != nil {
-		log.Fatalf("Failed to add password: %v", err)
+	// 여러 개의 비밀번호 등록
+	for _, password := range passwords {
+		err = booth.AddPassword(password)
+		if err != nil {
+			log.Printf("Failed to add password %s: %v", password, err)
+		} else {
+			fmt.Printf("Password %s added successfully\n", password)
+		}
 	}
-	fmt.Println("Password added successfully")
-
 	r := server.CreateRouter()
 	r.Run(config.Hostname + ":" + config.Port)
 }

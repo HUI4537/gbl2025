@@ -7,6 +7,11 @@ interface makeBoothType {
 	video_url: string;
 	thumbnail_url: string;
 	part: string;
+	boothName: string;
+	boothDescription: string;
+	boothField: string;
+	peopleNumber: string;
+	youtubeLink: string;
 }
 
 export const makeBooth = (boothInfo: makeBoothType) => {

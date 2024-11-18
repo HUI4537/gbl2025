@@ -17,6 +17,54 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { getUser } from "@/lib/auth";
 
+const YouTubeEmbed = ({ url }: { url: string }) => {
+	// YouTube URL에서 비디오 ID 추출
+	const getVideoId = (url: string) => {
+		if (!url) return null;
+		const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+		const match = url.match(regExp);
+		return match && match[2].length === 11 ? match[2] : null;
+	};
+
+	const videoId = getVideoId(url);
+
+	if (!videoId) {
+		return (
+			<Box
+				sx={{
+					width: "calc(100% - 50px)",
+					marginLeft: "25px",
+					marginTop: "10px",
+					padding: "20px",
+					textAlign: "center",
+					bgcolor: "rgb(240, 240, 240)",
+					borderRadius: "10px",
+				}}
+			>
+				올바른 유튜브 URL이 아닙니다.
+			</Box>
+		);
+	}
+
+	return (
+		<iframe
+			width="100%"
+			height="315"
+			src={`https://www.youtube.com/embed/${videoId}`}
+			title="YouTube video player"
+			frameBorder="0"
+			allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+			allowFullScreen
+			style={{
+				width: "calc(100% - 50px)",
+				marginLeft: "25px",
+				marginTop: "10px",
+				borderRadius: "10px",
+			}}
+		/>
+	);
+};
+
 const BoothDetail = () => {
 	const router = useRouter();
 	const { bid } = router.query;
@@ -177,19 +225,7 @@ const BoothDetail = () => {
 					프로젝트 소개 영상
 				</Typography>
 
-				<video
-					src={`/getfile/${BoothInfo.video_url}`}
-					style={{
-						width: "calc(100% - 50px)",
-						marginLeft: "25px",
-						marginTop: "10px",
-						borderRadius: "10px",
-					}}
-					// autoPlay
-					// muted
-					playsInline
-					controls
-				></video>
+				<YouTubeEmbed url={BoothInfo.video_url} />
 
 				<Typography variant='h6' fontWeight={800} ml={"20px"} mt={"30px"}>
 					프로젝트 개요

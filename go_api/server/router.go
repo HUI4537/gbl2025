@@ -24,7 +24,7 @@ func CreateRouter() *gin.Engine {
 		}
 
 		booth := api.Group("/booth")
-		{
+		{	
 			booth.GET("/", getBooths)
 			booth.GET("/:bid/", getBooth)
 			booth.DELETE("/:bid/", deleteBooth)

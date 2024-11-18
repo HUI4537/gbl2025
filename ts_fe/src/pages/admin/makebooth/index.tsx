@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import Background from "@/components/background";
 import Stack from "@mui/material/Stack";
-import { useState } from "react";
+import { useState, ChangeEvent } from "react";
 import LoadingPage from "@/components/loading";
 import CustomSnackBar from "@/components/snackbar";
 import { fileUpload } from "@/lib/upload";
@@ -95,7 +95,7 @@ export const CustomInput = ({
 		<TextField
 			label={text}
 			id='margin-none'
-			multiline
+			multiline={multiline}
 			maxRows={multiline ? 6 : 1}
 			required
 			name={name}
@@ -105,7 +105,6 @@ export const CustomInput = ({
 				bgcolor: "rgb(240, 240, 240)",
 				borderRadius: "10px",
 				border: 0,
-
 				"& .MuiOutlinedInput-notchedOutline": {
 					border: 0,
 					borderRadius: "10px",
@@ -113,6 +112,18 @@ export const CustomInput = ({
 			}}
 		/>
 	);
+};
+
+// YouTube URL 검증 함수 수정
+const validateYouTubeUrl = (url: string) => {
+	// 다양한 유튜브 URL 형식을 허용하는 정규식
+	const patterns = [
+		/^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+		/^(https?:\/\/)?(www\.)?youtube\.com\/watch.*v=([a-zA-Z0-9_-]{11})/,
+		/^(https?:\/\/)?(www\.)?youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/
+	];
+	
+	return patterns.some(pattern => pattern.test(url));
 };
 
 export const CustomSelect = ({
@@ -171,11 +182,7 @@ const MakeBoothPage = () => {
 		boothDescription: string;
 		boothField: string;
 		peopleNumber: string;
-	}
-
-	interface FileList {
-		thumbnail: Blob | null;
-		video: Blob | null;
+		video_url: string;
 	}
 
 	const [formData, setFormData] = useState<FormData>({
@@ -183,10 +190,7 @@ const MakeBoothPage = () => {
 		boothDescription: "",
 		boothField: "",
 		peopleNumber: "",
-	});
-	const [fileList, SetfileList] = useState<FileList>({
-		thumbnail: null,
-		video: null,
+		video_url: "",
 	});
 	const [loading, Setloading] = useState({
 		is_loading: false,
@@ -195,18 +199,18 @@ const MakeBoothPage = () => {
 	const AdminAuthState = useSelector((state: RootState) => state.adminauth);
 	const dispatch = useDispatch();
 
+	const [fileList, setFileList] = useState<{
+		thumbnail: File | null;
+	}>({
+		thumbnail: null
+	});
+
 	const validateData = (): string[] => {
 		let emptyFields: string[] = [];
 
 		for (let field in formData) {
 			if (!formData[field as keyof FormData]) {
 				emptyFields.push(field);
-			}
-		}
-
-		for (let file in fileList) {
-			if (!fileList[file as keyof FileList]) {
-				emptyFields.push(file);
 			}
 		}
 
@@ -222,16 +226,10 @@ const MakeBoothPage = () => {
 	};
 
 	const handleThumbnailFileUpload = async (file: File) => {
-		SetfileList((prevFormData: any) => ({
-			...prevFormData,
-			thumbnail: file,
-		}));
-	};
-	const handleVideoFileUpload = async (file: File) => {
-		SetfileList((prevFormData: any) => ({
-			...prevFormData,
-			video: file,
-		}));
+		setFileList({
+			...fileList,
+			thumbnail: file
+		});
 	};
 
 	const ErrHandlering = (err: any) => {
@@ -253,6 +251,7 @@ const MakeBoothPage = () => {
 			...loading,
 			is_loading: true,
 		});
+		
 		const valid_res = validateData();
 		if (valid_res.length !== 0) {
 			Setloading({
@@ -265,61 +264,67 @@ const MakeBoothPage = () => {
 				text: "모든 양식을 채워주세요.",
 			});
 			return;
+		}
+
+		// 유튜브 URL 유효성 검사
+		if (!validateYouTubeUrl(formData.video_url)) {
+			Setloading({
+				...loading,
+				is_loading: false,
+			});
+			SetSnackbarInfo({
+				...SnackbarInfo,
+				open: true,
+				text: "올바른 유튜브 URL을 입력해주세요.",
+			});
+			return;
+		}
+
+		// 썸네일 파일 업로
+		const ThumbnailformData = new FormData();
+		if (fileList.thumbnail) {
+			ThumbnailformData.append("file", fileList.thumbnail);
 		} else {
-			const ThumbnailformData = new FormData();
-			const VideoformData = new FormData();
+			SetSnackbarInfo({
+				...SnackbarInfo,
+				open: true,
+				text: "썸네일 이미지를 선택해주세요.",
+				severity: "warning"
+			});
+			return;
+		}
 
-			let fileUrl = {
-				thumbnail: "",
-				video: "",
-			};
-
-			ThumbnailformData.append(
-				"file",
-				fileList.thumbnail ? fileList.thumbnail : ""
-			);
-			VideoformData.append("file", fileList.video ? fileList.video : "");
-
-			fileUpload(ThumbnailformData, (percent: number) => {
+		fileUpload(ThumbnailformData, (percent: number) => {
+			Setloading({
+				msg: `이미지 업로드중입니다. ${percent}%`,
+				is_loading: true,
+			});
+		})
+			.then((res_thumbnail) => {
 				Setloading({
-					msg: `이미지 업로드중입니다. ${percent}%`,
+					msg: `부스를 만드는중입니다.`,
 					is_loading: true,
 				});
-			})
-				.then((res_thumbnail) => {
-					fileUrl.thumbnail = res_thumbnail.data.file;
-					fileUpload(VideoformData, (percent: number) => {
-						console.log(percent);
-						Setloading({
-							msg: `동영상 업로드중입니다. ${percent}%`,
-							is_loading: true,
-						});
-					})
-						.then((res_video) => {
-							fileUrl.video = res_video.data.file;
-							Setloading({
-								msg: `부스를 만드는중입니다.`,
-								is_loading: true,
-							});
-							makeBooth({
-								bid: AdminAuthState.bid,
-								name: formData.boothName,
-								description: formData.boothDescription,
-								video_url: fileUrl.video,
-								thumbnail_url: fileUrl.thumbnail,
-								part: formData.boothField,
-							}).then((res) => {
-								dispatch(create());
-							});
-						})
-						.catch((err) => {
-							ErrHandlering(err);
-						});
-				})
-				.catch((err) => {
-					ErrHandlering(err);
+				
+				makeBooth({
+					bid: AdminAuthState.bid,
+					name: formData.boothName,
+					description: formData.boothDescription, 
+					video_url: formData.video_url,
+					thumbnail_url: res_thumbnail.data.file,
+					part: formData.boothField,
+					boothName: formData.boothName,
+					boothDescription: formData.boothDescription,
+					boothField: formData.boothField,
+					peopleNumber: formData.peopleNumber,
+					youtubeLink: formData.video_url
+				}).then((res) => {
+					dispatch(create());
 				});
-		}
+			})
+			.catch((err) => {
+				ErrHandlering(err);
+			});
 	};
 
 	return (
@@ -400,13 +405,15 @@ const MakeBoothPage = () => {
 							shrink: true,
 						}}
 					/>
-					<CustomFileInput
-						name='video'
-						text='영상 업로드'
-						filetype='video'
-						onChange={handleVideoFileUpload}
-						InputLabelProps={{
-							shrink: true,
+					<CustomInput
+						name='video_url'
+						text='유튜브 영상 URL'
+						value={formData.video_url}
+						onChange={(e: ChangeEvent<HTMLInputElement>) => {
+							setFormData({
+								...formData,
+								video_url: e.target.value
+							});
 						}}
 					/>
 				</Stack>
