@@ -1,21 +1,14 @@
 import AppLayout from "@/layouts/app-layout";
-import { FilledInput, Typography } from "@mui/material";
+import { Typography, InputBase, Box, Slide, ButtonGroup, Button } from "@mui/material";
 import Header from "@/components/header";
 import Background from "@/components/background";
 import useScroll from "@/hooks/useScroll";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import BoothItem from "@/components/boothitem";
-import Box from "@mui/material/Box";
-import Slide from "@mui/material/Slide";
 import QRCodePage from "@/components/qrcode";
-import InputBase from "@mui/material/InputBase";
-
 import ProgressBar from "@/components/progressbar";
-
 import withAuth from "@/utils/withAuth";
 import { getBooths } from "@/lib/booth";
-import ButtonGroup from "@mui/material/ButtonGroup";
-import Button from "@mui/material/Button";
 
 interface Booth {
 	bid: string;
@@ -30,96 +23,104 @@ interface Booth {
 
 const BoothListPage = () => {
 	const { scrollRef, scrollPosition } = useScroll(0);
-	const [scrolled, Setscrolled] = useState(false);
-	const [progress, Setprogress] = useState(0);
-	const [Loading, SetLoading] = useState(true);
-	const [OpenModal, SetOpenModal] = useState(false);
-	const [boothList, SetboothList] = useState<Booth[]>([]);
-	const [Search, SetSearch] = useState("");
-	const [Available, SetAvailable] = useState(0);
-	const [TimeSlot, SetTimeSlot] = useState("A");
-	const openQr = () => {
-		SetOpenModal(true);
+	const [uiState, setUiState] = useState({
+		scrolled: false,
+		progress: 0,
+		loading: true,
+		openModal: false
+	});
+	const [boothState, setBoothState] = useState({
+		boothList: [] as Booth[],
+		search: "",
+		available: 0,
+		timeSlot: "A"
+	});
+
+	const handleModal = (isOpen: boolean) => {
+		setUiState(prev => ({ ...prev, openModal: isOpen }));
 	};
 
-	const closeQr = () => {
-		SetOpenModal(false);
-	};
-
-	const refreshBoothList = async () => {
+	// 부스 리스트 새로고침 로직을 useCallback으로 최적화
+	const refreshBoothList = useCallback(async () => {
 		try {
 			const res = await getBooths();
-			console.log("부스 데이터 응답:", res);
-			console.log("부스 목록:", res.data.boothlist);
-			
-			if (res.data && Array.isArray(res.data.boothlist)) {
-				const filteredBooths = res.data.boothlist.filter((booth: Booth) => {
-					console.log("부스:", booth, "타임슬롯:", booth.time_slot, "현재:", TimeSlot);
-					return booth.time_slot === TimeSlot;
-				});
-				
-				console.log("필터링된 부스:", filteredBooths);
-				SetboothList(filteredBooths);
-				
-				const availableBooths = filteredBooths.filter((booth: Booth) => 
-					booth.complexity === 0
-				).length;
-				SetAvailable(availableBooths);
-			} else {
-				console.error("부스 데이터 형식이 잘못되었습니다:", res.data);
+			const boothlistData = res.data?.boothlist?.boothlist || [];
+
+			if (!Array.isArray(boothlistData)) {
+				console.error("부스 데이터가 배열이 아닙니다:", boothlistData);
+				setBoothState(prev => ({ ...prev, boothList: [], available: 0 }));
+				return;
 			}
+
+			// 타임슬롯 필터링 로직 개선
+			const filteredBooths = boothlistData.filter((booth: Booth) => {
+				if (!booth?.time_slot) return false;
+				return String(booth.time_slot).toUpperCase() === boothState.timeSlot;
+			});
+
+			// 가용 부스 계산 로직 개선
+			const availableBooths = filteredBooths.filter(booth => booth?.complexity === 0).length;
+
+			setBoothState(prev => ({
+				...prev,
+				boothList: filteredBooths,
+				available: availableBooths
+			}));
 		} catch (error) {
 			console.error("부스 데이터 가져오기 오류:", error);
+			setBoothState(prev => ({ ...prev, boothList: [], available: 0 }));
 		}
-	};
+	}, [boothState.timeSlot]);
 
 	useEffect(() => {
-		if (scrollPosition.scrollTop > 140) {
-			Setscrolled(true);
-		} else {
-			Setscrolled(false);
-		}
-		Setprogress(
-			(scrollPosition.scrollTop /
-				(scrollPosition.scrollHeight - scrollPosition.clientHeight)) *
-				100
-		);
+		const isScrolled = scrollPosition.scrollTop > 140;
+		const progress = (scrollPosition.scrollTop / 
+			(scrollPosition.scrollHeight - scrollPosition.clientHeight)) * 100;
+
+		setUiState(prev => ({ ...prev, scrolled: isScrolled, progress }));
 	}, [scrollPosition]);
 
 	useEffect(() => {
-		console.log("현재 타임슬롯:", TimeSlot);
-		SetLoading(true);
+		setUiState(prev => ({ ...prev, loading: true }));
 		
 		refreshBoothList().finally(() => {
-			SetLoading(false);
+			setUiState(prev => ({ ...prev, loading: false }));
 		});
 
 		const interval = setInterval(refreshBoothList, 5000);
 		return () => clearInterval(interval);
-	}, [TimeSlot]);
+	}, [boothState.timeSlot, refreshBoothList]);
+
+	const handleSearch = (value: string) => {
+		setBoothState(prev => ({ ...prev, search: value }));
+	};
+
+	const handleTimeSlotChange = (slot: string) => {
+		setBoothState(prev => ({ ...prev, timeSlot: slot }));
+	};
 
 	return (
 		<>
 			<QRCodePage
-				open={OpenModal}
-				closeQr={closeQr}
-				openQr={openQr}
-			></QRCodePage>
-			<ProgressBar value={progress}></ProgressBar>
-			<Background></Background>
+				open={uiState.openModal}
+				closeQr={() => handleModal(false)}
+				openQr={() => handleModal(true)}
+			/>
+			<ProgressBar value={uiState.progress} />
+			<Background />
 
 			<AppLayout scroll_ref={scrollRef}>
 				<Typography
-					fontSize={"20px"}
-					position={"absolute"}
-					top={"25px"}
-					left={"25px"}
+					fontSize="20px"
+					position="absolute"
+					top="25px"
+					left="25px"
 					fontWeight={900}
-					color={"rgb(230, 230, 230)"}
+					color="rgb(230, 230, 230)"
 				>
 					GBL2024
 				</Typography>
-				<Header openModal={openQr} hide={scrolled}></Header>
+				<Header openModal={() => handleModal(true)} hide={uiState.scrolled} />
 
 				<InputBase
 					sx={{
@@ -132,62 +133,49 @@ const BoothListPage = () => {
 						zIndex: "30",
 						borderRadius: "10px",
 					}}
-					placeholder='부스명을 입력해주세요.'
-					value={Search}
-					onChange={(e) => {
-						SetSearch(e.target.value);
-					}}
-				></InputBase>
+					placeholder="부스명을 입력해주세요."
+					value={boothState.search}
+					onChange={(e) => handleSearch(e.target.value)}
+				/>
 
-				<Box
-					sx={{
-						display: "flex",
-						alignItems: "center",
-						gap: "10px",
-						ml: "25px",
-						mt: "20px",
-						mb: "20px",
-					}}
-				>
+				<Box sx={{ display: "flex", alignItems: "center", gap: "10px", ml: "25px", my: "20px" }}>
 					<Box
-						padding={"8px 15px"}
-						bgcolor={"rgb(240, 240, 240)"}
-						display={"inline-block"}
-						borderRadius={"20px"}
-						fontSize={"13px"}
-						fontWeight={600}
-						color={"rgb(100, 100, 100)"}
+						sx={{
+							padding: "8px 15px",
+							bgcolor: "rgb(240, 240, 240)",
+							display: "inline-block",
+							borderRadius: "20px",
+							fontSize: "13px",
+							fontWeight: 600,
+							color: "rgb(100, 100, 100)"
+						}}
 					>
-						체험가능 부스 : {Available}개
+						체험가능 부스 : {boothState.available}개
 					</Box>
 					<ButtonGroup size="small">
-						<Button
-							variant={TimeSlot === "A" ? "contained" : "outlined"}
-							onClick={() => SetTimeSlot("A")}
-							sx={{ fontSize: "13px" }}
-						>
-							A타임
-						</Button>
-						<Button
-							variant={TimeSlot === "B" ? "contained" : "outlined"}
-							onClick={() => SetTimeSlot("B")}
-							sx={{ fontSize: "13px" }}
-						>
-							B타임
-						</Button>
+						{["A", "B"].map((slot) => (
+							<Button
+								key={slot}
+								variant={boothState.timeSlot === slot ? "contained" : "outlined"}
+								onClick={() => handleTimeSlotChange(slot)}
+								sx={{ fontSize: "13px" }}
+							>
+								{slot}타임
+							</Button>
+						))}
 					</ButtonGroup>
 				</Box>
 
-				<Slide in={!Loading} direction='up' timeout={400}>
+				<Slide in={!uiState.loading} direction="up" timeout={400}>
 					<Box>
-						{boothList && boothList.length > 0 ? (
-							boothList
-								.filter((item: any) => 
-									item.name.toLowerCase().includes(Search.toLowerCase())
+						{boothState.boothList.length > 0 ? (
+							boothState.boothList
+								.filter(item => 
+									item.name.toLowerCase().includes(boothState.search.toLowerCase())
 								)
-								.map((item: any, index) => (
+								.map(item => (
 									<BoothItem 
-										key={item.bid || index} 
+										key={item.bid} 
 										item={item} 
 									/>
 								))
@@ -197,7 +185,7 @@ const BoothListPage = () => {
 								mt={3} 
 								color="gray"
 							>
-								현재 타임슬롯에 등록된 부스가 없습니다. 이런
+								현재 타임슬롯에 등록된 부스가 없습니다.
 							</Typography>
 						)}
 					</Box>

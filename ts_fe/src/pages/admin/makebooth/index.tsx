@@ -321,9 +321,18 @@ const MakeBoothPage = () => {
 					boothField: formData.boothField,
 					peopleNumber: formData.peopleNumber,
 					youtubeLink: formData.video_url,
-					time_slot: formData.time_slot
+					time_slot: formData.time_slot.toUpperCase()
 				}).then((res) => {
 					dispatch(create());
+					SetSnackbarInfo({
+						open: true,
+						text: "부스가 성공적으로 생성되었습니다.",
+						severity: "success"
+					});
+					Setloading({
+						is_loading: false,
+						msg: ""
+					});
 				});
 			})
 			.catch((err) => {
