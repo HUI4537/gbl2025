@@ -25,6 +25,13 @@ const nextConfig = {
 		];
 	},
 	reactStrictMode: false,
+	webpack: (config) => {
+		config.resolve.alias = {
+			...config.resolve.alias,
+			'pdfjs-dist': 'pdfjs-dist/legacy/build/pdf',
+		};
+		return config;
+	},
 };
 
 module.exports = withPlugins(

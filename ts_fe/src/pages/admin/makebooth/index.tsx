@@ -8,6 +8,7 @@ import {
 	InputLabel,
 	Select,
 	MenuItem,
+	ButtonGroup,
 } from "@mui/material";
 import Background from "@/components/background";
 import Stack from "@mui/material/Stack";
@@ -183,14 +184,16 @@ const MakeBoothPage = () => {
 		boothField: string;
 		peopleNumber: string;
 		video_url: string;
+		time_slot: string;
 	}
 
-	const [formData, setFormData] = useState<FormData>({
+	const [formData, setFormData] = useState({
 		boothName: "",
 		boothDescription: "",
 		boothField: "",
 		peopleNumber: "",
 		video_url: "",
+		time_slot: "A"
 	});
 	const [loading, Setloading] = useState({
 		is_loading: false,
@@ -317,7 +320,8 @@ const MakeBoothPage = () => {
 					boothDescription: formData.boothDescription,
 					boothField: formData.boothField,
 					peopleNumber: formData.peopleNumber,
-					youtubeLink: formData.video_url
+					youtubeLink: formData.video_url,
+					time_slot: formData.time_slot
 				}).then((res) => {
 					dispatch(create());
 				});
@@ -416,6 +420,28 @@ const MakeBoothPage = () => {
 							});
 						}}
 					/>
+					<ButtonGroup 
+						sx={{ 
+							width: "100%", 
+							height: "50px",
+							mb: 2 
+						}}
+					>
+						<Button 
+							fullWidth
+							variant={formData.time_slot === "A" ? "contained" : "outlined"}
+							onClick={() => setFormData({...formData, time_slot: "A"})}
+						>
+							A타임
+						</Button>
+						<Button
+							fullWidth
+							variant={formData.time_slot === "B" ? "contained" : "outlined"}
+							onClick={() => setFormData({...formData, time_slot: "B"})}
+						>
+							B타임
+						</Button>
+					</ButtonGroup>
 				</Stack>
 
 				<Button

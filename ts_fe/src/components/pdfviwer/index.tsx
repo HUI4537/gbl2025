@@ -14,9 +14,8 @@ interface ToolbarSlotsExampleProps {
 const ToolbarSlotsExample: React.FC<ToolbarSlotsExampleProps> = ({
 	fileUrl,
 }) => {
-	const toolbarPluginInstance = toolbarPlugin();
-	const fullScreenPluginInstance = fullScreenPlugin();
-
+	const toolbarPluginInstance = React.useMemo(() => toolbarPlugin(), []);
+	const fullScreenPluginInstance = React.useMemo(() => fullScreenPlugin(), []);
 	const { Toolbar } = toolbarPluginInstance;
 
 	return (
@@ -26,7 +25,6 @@ const ToolbarSlotsExample: React.FC<ToolbarSlotsExampleProps> = ({
 				display: "flex",
 				width: "calc(100% - 40px)",
 				marginLeft: "20px",
-				// justifyContent: "center",
 				flexDirection: "column",
 				height: "calc(100% - 250px)",
 				backgroundColor: "rgb(250, 250, 250)",
@@ -62,7 +60,6 @@ const ToolbarSlotsExample: React.FC<ToolbarSlotsExampleProps> = ({
 								<div style={{ padding: "0px 2px" }}>
 									<ZoomIn />
 								</div>
-
 								<div style={{ padding: "0px 2px", marginLeft: "10px" }}>
 									<EnterFullScreen />
 								</div>
@@ -77,11 +74,14 @@ const ToolbarSlotsExample: React.FC<ToolbarSlotsExampleProps> = ({
 					overflow: "hidden",
 				}}
 			>
-				<Worker workerUrl='https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js'></Worker>
-				<Viewer
-					fileUrl={fileUrl}
-					plugins={[toolbarPluginInstance, fullScreenPluginInstance]}
-				/>
+				{/* @ts-ignore */}
+				<Worker workerUrl='https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js'>
+					{/* @ts-ignore */}
+					<Viewer
+						fileUrl={fileUrl}
+						plugins={[toolbarPluginInstance, fullScreenPluginInstance]}
+					/>
+				</Worker>
 			</div>
 		</div>
 	);

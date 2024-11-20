@@ -12,6 +12,7 @@ interface makeBoothType {
 	boothField: string;
 	peopleNumber: string;
 	youtubeLink: string;
+	time_slot: string;
 }
 
 export const makeBooth = (boothInfo: makeBoothType) => {

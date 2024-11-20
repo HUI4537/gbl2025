@@ -14,6 +14,19 @@ import ProgressBar from "@/components/progressbar";
 
 import withAuth from "@/utils/withAuth";
 import { getBooths } from "@/lib/booth";
+import ButtonGroup from "@mui/material/ButtonGroup";
+import Button from "@mui/material/Button";
+
+interface Booth {
+	bid: string;
+	name: string;
+	description: string;
+	part: string;
+	complexity: number;
+	video_url: string;
+	thumbnail_url: string;
+	time_slot: string;
+}
 
 const BoothListPage = () => {
 	const { scrollRef, scrollPosition } = useScroll(0);
@@ -21,9 +34,10 @@ const BoothListPage = () => {
 	const [progress, Setprogress] = useState(0);
 	const [Loading, SetLoading] = useState(true);
 	const [OpenModal, SetOpenModal] = useState(false);
-	const [boothList, SetboothList] = useState([]);
+	const [boothList, SetboothList] = useState<Booth[]>([]);
 	const [Search, SetSearch] = useState("");
 	const [Available, SetAvailable] = useState(0);
+	const [TimeSlot, SetTimeSlot] = useState("A");
 	const openQr = () => {
 		SetOpenModal(true);
 	};
@@ -32,18 +46,31 @@ const BoothListPage = () => {
 		SetOpenModal(false);
 	};
 
-	const refreshBoothList = () => {
-		let avail = 0;
-		getBooths().then((res) => {
-			SetboothList(res.data.boothlist);
-			console.log(res.data.boothlist);
-			res.data.boothlist.map((item: any) => {
-				if (item.complexity === 0) {
-					avail = avail + 1;
-				}
-			});
-			SetAvailable(avail);
-		});
+	const refreshBoothList = async () => {
+		try {
+			const res = await getBooths();
+			console.log("부스 데이터 응답:", res);
+			console.log("부스 목록:", res.data.boothlist);
+			
+			if (res.data && Array.isArray(res.data.boothlist)) {
+				const filteredBooths = res.data.boothlist.filter((booth: Booth) => {
+					console.log("부스:", booth, "타임슬롯:", booth.time_slot, "현재:", TimeSlot);
+					return booth.time_slot === TimeSlot;
+				});
+				
+				console.log("필터링된 부스:", filteredBooths);
+				SetboothList(filteredBooths);
+				
+				const availableBooths = filteredBooths.filter((booth: Booth) => 
+					booth.complexity === 0
+				).length;
+				SetAvailable(availableBooths);
+			} else {
+				console.error("부스 데이터 형식이 잘못되었습니다:", res.data);
+			}
+		} catch (error) {
+			console.error("부스 데이터 가져오기 오류:", error);
+		}
 	};
 
 	useEffect(() => {
@@ -60,17 +87,16 @@ const BoothListPage = () => {
 	}, [scrollPosition]);
 
 	useEffect(() => {
-		SetLoading(false);
+		console.log("현재 타임슬롯:", TimeSlot);
+		SetLoading(true);
+		
+		refreshBoothList().finally(() => {
+			SetLoading(false);
+		});
 
-		refreshBoothList();
-
-		const getBoothInterval = setInterval(() => {
-			refreshBoothList();
-		}, 5000);
-		return () => {
-			clearInterval(getBoothInterval);
-		};
-	}, []);
+		const interval = setInterval(refreshBoothList, 5000);
+		return () => clearInterval(interval);
+	}, [TimeSlot]);
 
 	return (
 		<>
@@ -114,31 +140,65 @@ const BoothListPage = () => {
 				></InputBase>
 
 				<Box
-					ml={"25px"}
-					padding={"8px 15px"}
-					bgcolor={"rgb(240, 240, 240)"}
-					mb={"20px"}
-					display={"inline-block"}
-					borderRadius={"20px"}
-					fontSize={"13px"}
-					fontWeight={600}
-					color={"rgb(100, 100, 100)"}
-					mt={"20px"}
+					sx={{
+						display: "flex",
+						alignItems: "center",
+						gap: "10px",
+						ml: "25px",
+						mt: "20px",
+						mb: "20px",
+					}}
 				>
-					체험가능 부스 : {Available}개
+					<Box
+						padding={"8px 15px"}
+						bgcolor={"rgb(240, 240, 240)"}
+						display={"inline-block"}
+						borderRadius={"20px"}
+						fontSize={"13px"}
+						fontWeight={600}
+						color={"rgb(100, 100, 100)"}
+					>
+						체험가능 부스 : {Available}개
+					</Box>
+					<ButtonGroup size="small">
+						<Button
+							variant={TimeSlot === "A" ? "contained" : "outlined"}
+							onClick={() => SetTimeSlot("A")}
+							sx={{ fontSize: "13px" }}
+						>
+							A타임
+						</Button>
+						<Button
+							variant={TimeSlot === "B" ? "contained" : "outlined"}
+							onClick={() => SetTimeSlot("B")}
+							sx={{ fontSize: "13px" }}
+						>
+							B타임
+						</Button>
+					</ButtonGroup>
 				</Box>
 
 				<Slide in={!Loading} direction='up' timeout={400}>
 					<Box>
-						{boothList.map((item: any, index) =>
-							item.name.search(Search) !== -1 && item.complexity === 0 ? (
-								<BoothItem item={item} key={index}></BoothItem>
-							) : null
-						)}
-						{boothList.map((item: any, index) =>
-							item.name.search(Search) !== -1 && item.complexity === 1 ? (
-								<BoothItem item={item} key={index}></BoothItem>
-							) : null
+						{boothList && boothList.length > 0 ? (
+							boothList
+								.filter((item: any) => 
+									item.name.toLowerCase().includes(Search.toLowerCase())
+								)
+								.map((item: any, index) => (
+									<BoothItem 
+										key={item.bid || index} 
+										item={item} 
+									/>
+								))
+						) : (
+							<Typography 
+								textAlign="center" 
+								mt={3} 
+								color="gray"
+							>
+								현재 타임슬롯에 등록된 부스가 없습니다. 이런
+							</Typography>
 						)}
 					</Box>
 				</Slide>

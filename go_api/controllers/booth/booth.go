@@ -2,16 +2,39 @@ package booth
 
 import (
 	"math/rand"
+	"log"
 
 	"gbl-api/data"
 	"gorm.io/gorm"
 )
 
-func GetBooths() ([]Booth, error) {
+type Booth struct {
+	BID           string `json:"bid" gorm:"column:bid"`
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	Part          string `json:"part"`
+	Complexity    int    `json:"complexity"`
+	VideoURL      string `json:"video_url" gorm:"column:video_url"`
+	ThumbnailURL  string `json:"thumbnail_url" gorm:"column:thumbnail_url"`
+	TimeSlot      string `json:"time_slot" gorm:"column:time_slot"`
+}
+
+func GetBooths() (map[string]interface{}, error) {
 	db := data.GetDatabase()
 	var booths []Booth
 	err := db.Find(&booths).Error
-	return booths, err
+	if err != nil {
+		log.Printf("DB 조회 오류: %v", err)
+		return nil, err
+	}
+	log.Printf("조회된 부스 수: %d", len(booths))
+	
+	// 클라이언트가 기대하는 형식으로 응답 구조화
+	response := map[string]interface{}{
+		"boothlist": booths,
+	}
+	
+	return response, nil
 }
 
 func GetBooth(bid string) (Booth, error) {
@@ -101,4 +124,12 @@ func IsUidInBooth(bid string, uid string) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+func CreateBooth(booth *Booth) error {
+	db := data.GetDatabase()
+	if booth.TimeSlot == "" {
+		booth.TimeSlot = "A"
+	}
+	return db.Create(booth).Error
 }
