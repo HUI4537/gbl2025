@@ -53,3 +53,11 @@ export const changeComplexity = (bid: string, complexity: number) => {
 	});
 	return res;
 };
+
+export const addScore = (uid: string, score: number) => {
+	const res = axios.post("/api/user/addscore", {
+		uid: uid,
+		score: score
+	});
+	return res;
+};

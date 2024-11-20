@@ -8,7 +8,7 @@ import { CircularProgress } from "@mui/material";
 import Stack from "@mui/material/Stack";
 import LogoImage from "@/assets/img/logo.svg";
 import Image from "next/image";
-import { addUser, changeComplexity } from "@/lib/booth";
+import { addUser, changeComplexity, addScore } from "@/lib/booth";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import LoadingPage from "@/components/loading";
@@ -112,13 +112,22 @@ const ScannedComponent = ({ data }: { data: any }) => {
 									is_loading: true,
 									msg: "부스 참가자 추가중",
 								});
-								addUser(data.uid, AdminAuthState.bid).then((res) => {
-									changeComplexity(AdminAuthState.bid, 1).then(() => {
+								
+								addUser(data.uid, AdminAuthState.bid)
+									.then((res) => {
+										return changeComplexity(AdminAuthState.bid, 1);
+									})
+									.then(() => {
+										return addScore(data.uid, 100);
+									})
+									.then(() => {
 										alert("참가자가 추가되었습니다.");
 										router.push("/admin/dashboard");
-										console.log(res);
+									})
+									.catch((error) => {
+										console.error("Error:", error);
+										alert("오류가 발생했습니다.");
 									});
-								});
 							}}
 						>
 							추가하기

@@ -80,6 +80,7 @@ const DashboardPage = () => {
 				variant='contained'
 				disableElevation
 				color='inherit'
+				disabled={true}
 				sx={{
 					mx: "20px",
 					width: "calc(100% - 40px)",
@@ -96,6 +97,7 @@ const DashboardPage = () => {
 				variant='contained'
 				disableElevation
 				color='inherit'
+				disabled={true} //문제 보기 및 수정하기가 오류가 나서 비활성화해 두었습니다
 				sx={{
 					mx: "20px",
 					width: "calc(100% - 40px)",

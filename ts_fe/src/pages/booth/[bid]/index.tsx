@@ -18,12 +18,23 @@ import { RootState } from "@/store";
 import { getUser } from "@/lib/auth";
 
 const YouTubeEmbed = ({ url }: { url: string }) => {
-	// YouTube URL에서 비디오 ID 추출
 	const getVideoId = (url: string) => {
 		if (!url) return null;
-		const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-		const match = url.match(regExp);
-		return match && match[2].length === 11 ? match[2] : null;
+		
+		// 다양한 YouTube URL 패턴 매칭
+		const patterns = [
+			/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/,
+			/^.*(youtube\.com\/shorts\/)([^#&?]*).*/
+		];
+		
+		for (const pattern of patterns) {
+			const match = url.match(pattern);
+			if (match && match[2].length === 11) {
+				return match[2];
+			}
+		}
+		
+		return null;
 	};
 
 	const videoId = getVideoId(url);

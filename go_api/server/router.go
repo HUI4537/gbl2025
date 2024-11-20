@@ -1,11 +1,24 @@
 package server
 
 import (
+	"gbl-api/data"
 	"github.com/gin-gonic/gin"
 )
 
+// DB 미들웨어 추가
+func DBMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		db := data.GetDatabase()
+		c.Set("db", db)
+		c.Next()
+	}
+}
+
 func CreateRouter() *gin.Engine {
 	r := gin.Default()
+
+	// 전역 미들웨어로 DB 설정
+	r.Use(DBMiddleware())
 
 	r.Static("/getfile/", "./upload")
 

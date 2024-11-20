@@ -1,61 +1,11 @@
 import AppLayout from "@/layouts/app-layout";
-import { Box, Card, CardContent, Typography } from "@mui/material";
-
-import { useSelector } from "react-redux";
-import { RootState } from "@/store";
-
-import { useRouter } from "next/router";
+import { Box, Typography } from "@mui/material";
 import Background from "@/components/background";
-import { useEffect, useState } from "react";
-import { getNotification } from "@/lib/notification";
 
-interface NotificationType {
-	title: string;
-	content: string;
-	time: string;
-}
-const AnnounceCard = ({ title, content, time }: NotificationType) => {
-	return (
-		<Card
-			sx={{ mt: "15px", bgcolor: "rgb(250, 250, 250)", borderRadius: "10px" }}
-			elevation={0}
-		>
-			<CardContent>
-				<Typography sx={{ fontSize: 10 }} color='text.secondary'>
-					{time}
-				</Typography>
-				<Typography
-					fontSize={"20px"}
-					fontWeight={800}
-					color={"rgb(50, 50, 50)"}
-				>
-					{title}
-				</Typography>
-
-				<Typography
-					variant='body2'
-					sx={{ wordBreak: "break-all", color: "rgb(100, 100, 100)" }}
-				>
-					{content}
-				</Typography>
-			</CardContent>
-		</Card>
-	);
-};
-
-const AnnouncePage = () => {
-	const AuthState = useSelector((state: RootState) => state.auth);
-	const router = useRouter();
-	const [Notification, SetNotification] = useState<NotificationType[]>([]);
-	useEffect(() => {
-		getNotification().then((res) => {
-			SetNotification(res.data.notifications);
-		});
-	}, []);
+const LayoutPage = () => {
 	return (
 		<>
 			<Background></Background>
-
 			<AppLayout>
 				<Typography
 					fontSize={"20px"}
@@ -67,17 +17,65 @@ const AnnouncePage = () => {
 					GBL2024
 				</Typography>
 				<Typography fontSize={"35px"} ml={"25px"} fontWeight={900}>
-					공지사항
+					부스 배치도
 				</Typography>
 
-				<Box width={"calc(100% - 50px)"} ml={"25px"}>
-					{Notification.map((item, index) => {
-						return <AnnounceCard {...item} key={index}></AnnounceCard>;
-					})}
+				<Box 
+					width={"calc(100% - 50px)"} 
+					ml={"25px"}
+					sx={{
+						display: 'flex',
+						flexDirection: 'column',
+						gap: '20px',
+						mt: '20px',
+						mb: '50px'
+					}}
+				>
+					<Box>
+						<Typography 
+							variant="h6" 
+							fontWeight={800} 
+							mb={2}
+							color="rgb(50, 50, 50)"
+						>
+							A타임 배치도
+						</Typography>
+						<Box
+							component="img"
+							src="/images/layout-a.jpg"
+							alt="A타임 부스 배치도"
+							sx={{
+								width: '100%',
+								borderRadius: '10px',
+								bgcolor: 'rgb(240, 240, 240)'
+							}}
+						/>
+					</Box>
+					
+					<Box>
+						<Typography 
+							variant="h6" 
+							fontWeight={800} 
+							mb={2}
+							color="rgb(50, 50, 50)"
+						>
+							B타임 배치도
+						</Typography>
+						<Box
+							component="img"
+							src="/images/layout-b.jpg"
+							alt="B타임 부스 배치도"
+							sx={{
+								width: '100%',
+								borderRadius: '10px',
+								bgcolor: 'rgb(240, 240, 240)'
+							}}
+						/>
+					</Box>
 				</Box>
 			</AppLayout>
 		</>
 	);
 };
 
-export default AnnouncePage;
+export default LayoutPage;
