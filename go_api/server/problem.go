@@ -4,8 +4,10 @@ import (
 	"gbl-api/controllers/booth"
 	"gbl-api/controllers/problem"
 	"gbl-api/controllers/score"
-	"github.com/gin-gonic/gin"
+	"gbl-api/data"
 	"log"
+
+	"github.com/gin-gonic/gin"
 )
 
 func problemList(c *gin.Context) {
@@ -40,8 +42,8 @@ func problemSubmit(c *gin.Context) {
 	}
 	uid := req.UID
 
-	var b booth.Booth
-	b, err := booth.GetBooth(bid)
+	db := data.GetDatabase()
+	b, err := booth.GetBooth(db, bid)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message": "Bad Request",
@@ -58,16 +60,12 @@ func problemSubmit(c *gin.Context) {
 		err := score.AddScore(bid, uid, p, s)
 		if err != nil {
 			log.Println(err)
-			c.JSON(500, gin.H{
-				"message": "Internal Server Error",
-			})
-			return
 		}
 	}
 
 	c.JSON(200, gin.H{
-		"score":   totalScore,
-		"answers": scores,
+		"total_score": totalScore,
+		"scores":      scores,
 	})
 }
 

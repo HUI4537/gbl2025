@@ -4,7 +4,9 @@ import (
 	"log"
 
 	"gbl-api/controllers/booth"
+
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func makeBooth(c *gin.Context) {
@@ -47,7 +49,8 @@ func getBooths(c *gin.Context) {
 
 func getBooth(c *gin.Context) {
 	bid := c.Param("bid")
-	b, err := booth.GetBooth(bid)
+	db := c.MustGet("db").(*gorm.DB)
+	b, err := booth.GetBooth(db, bid)
 	if err != nil {
 		c.JSON(404, gin.H{
 			"message": "Booth not found",
@@ -166,7 +169,8 @@ func addUser(c *gin.Context) {
 		return
 	}
 
-	err = booth.AddUidToBooth(req.BID, req.UID)
+	db := c.MustGet("db").(*gorm.DB)
+	err = booth.AddUIDToBooth(db, req.BID, req.UID)
 	if err != nil {
 		log.Println(err)
 		c.JSON(500, gin.H{
