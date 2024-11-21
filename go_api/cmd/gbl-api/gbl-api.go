@@ -109,7 +109,7 @@ func main() {
 		"GBL2024_FPS_RST",
 		"GBL2024_팔아다있으_UVW",
 		"GBL2024_음라이브_XYZ",
-		"Test"
+		"Test",
 	}
 	
 	// 기존 어드민 비밀번호 삭제
