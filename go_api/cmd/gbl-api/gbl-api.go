@@ -112,7 +112,7 @@ func main() {
 		"Test",
 	}
 	
-	// 기존 어드민 비밀번호 삭제
+	// 기존 어드민 비밀번호 삭제L
 	err = booth.DeletePasswordByBID("admin")
 	if err != nil {
 		log.Fatalf("Failed to delete existing admin passwords: %v", err)

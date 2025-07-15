@@ -9,6 +9,7 @@ import {
 	Select,
 	MenuItem,
 	ButtonGroup,
+	IconButton,
 } from "@mui/material";
 import Background from "@/components/background";
 import Stack from "@mui/material/Stack";
@@ -19,7 +20,9 @@ import { fileUpload } from "@/lib/upload";
 import { makeBooth } from "@/lib/booth";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { create } from "@/store/adminauth-slice";
+import { create, logout } from "@/store/adminauth-slice";
+import { useRouter } from "next/router";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export const CustomFileInput = ({
 	text,
@@ -171,6 +174,7 @@ export const CustomSelect = ({
 
 const MakeBoothPage = () => {
 	const element_height_ref = useElementHeight();
+	const router = useRouter();
 
 	const [SnackbarInfo, SetSnackbarInfo] = useState({
 		open: false,
@@ -340,6 +344,14 @@ const MakeBoothPage = () => {
 			});
 	};
 
+	const handleGoBack = () => {
+		// 세션 클리어
+		localStorage.removeItem("adminauth");
+		dispatch(logout());
+		// 관리자 페이지로 이동
+		router.push("/admin");
+	};
+
 	return (
 		<>
 			<CustomSnackBar
@@ -370,16 +382,32 @@ const MakeBoothPage = () => {
 				<Typography fontWeight={900} variant='h4' mt={"70px"} ml={"25px"}>
 					부스만들기
 				</Typography>
-				<Typography
-					fontWeight={400}
-					variant='subtitle1'
-					color={"rgb(100, 100, 100)"}
-					mt={"10px"}
-					ml={"25px"}
-				>
-					아래 양식을 작성한 후<br />
-					제출 버튼을 눌러주세요.
-				</Typography>
+				<Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: "10px", ml: "25px", mr: "25px" }}>
+					<Typography
+						fontWeight={400}
+						variant='subtitle1'
+						color={"rgb(100, 100, 100)"}
+					>
+						아래 양식을 작성한 후<br />
+						제출 버튼을 눌러주세요.
+					</Typography>
+					<Button
+						variant="text"
+						onClick={handleGoBack}
+						startIcon={<ArrowBackIcon />}
+						sx={{
+							color: "rgb(100, 100, 100)",
+							fontSize: "14px",
+							fontWeight: 400,
+							textTransform: "none",
+							"&:hover": {
+								backgroundColor: "rgba(100, 100, 100, 0.1)"
+							}
+						}}
+					>
+						뒤로가기
+					</Button>
+				</Box>
 				<Stack mt={"40px"} px={"20px"} mb={"100px"} gap={"20px"}>
 					<CustomInput
 						name='boothName'
