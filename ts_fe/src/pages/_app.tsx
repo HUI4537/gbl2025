@@ -11,6 +11,7 @@ import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { useEffect } from "react";
 import { app } from "../utils/firebaseInit";
 import theme from "@/theme";
+import { useSelector } from "react-redux";
 
 interface MyAppProps {
 	Component: any;
@@ -60,18 +61,27 @@ const MyApp = ({ Component, pageProps }: MyAppProps) => {
 	return (
 		<Provider store={store}>
 			<ThemeProvider theme={theme}>
-				<Head>
-					<title>GBL2024</title>
-					<link rel='shortcut icon' href='/favicon.ico' />
-					<link rel='manifest' href='/manifest.json' />
-				</Head>
-				{ProgressState ? <LoadingPage></LoadingPage> : null}
-				<AuthProvider>
-					<Component {...pageProps} />
-				</AuthProvider>
+				<MyAppWithTitle Component={Component} pageProps={pageProps} ProgressState={ProgressState} />
 			</ThemeProvider>
 		</Provider>
 	);
 };
+
+function MyAppWithTitle({ Component, pageProps, ProgressState }: any) {
+	const siteTitle = useSelector((state: any) => state.siteinfo.siteTitle);
+	return (
+		<>
+			<Head>
+				<title>{siteTitle || "GBL2025"}</title>
+				<link rel='shortcut icon' href='/favicon.ico' />
+				<link rel='manifest' href='/manifest.json' />
+			</Head>
+			{ProgressState ? <LoadingPage /> : null}
+			<AuthProvider>
+				<Component {...pageProps} />
+			</AuthProvider>
+		</>
+	);
+}
 
 export default MyApp;

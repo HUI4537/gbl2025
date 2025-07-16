@@ -114,6 +114,36 @@ const AdminLoaginPage = () => {
 					>
 						일반 로그인 페이지 바로가기
 					</Button>
+
+					{/* 마스터 페이지 안내 및 이동 버튼 */}
+					<Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', mt: 10, mb: 2 }}>
+						<Typography fontSize={"14px"} color={"#888"} mb={1}>
+							사이트 설정 변경은 마스터 페이지에서 가능합니다.
+						</Typography>
+						<Button
+							variant='contained'
+							disableElevation
+							startIcon={<VpnKeyIcon />}
+							sx={{
+								bgcolor: '#ffe0b2',
+								color: 'rgb(255, 140, 0)',
+								borderRadius: '100px',
+								fontSize: '13px',
+								fontWeight: 700,
+								px: 3,
+								boxShadow: 'none',
+								'&:hover': {
+									backgroundColor: '#ffa600',
+									color: 'white',
+								},
+							}}
+							onClick={() => {
+								router.push('/admin/master');
+							}}
+						>
+							마스터 페이지로 이동
+						</Button>
+					</Box>
 				</Box>
 
 				<Slide in={animation} timeout={600} direction='up'>
