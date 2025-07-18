@@ -1,21 +1,22 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"time"
+	   "fmt"
+	   "log"
+	   "os"
+	   "time"
 
-	"gbl-api/config"
-	"gbl-api/controllers/booth"
-	"gbl-api/controllers/notification"
-	"gbl-api/controllers/problem"
-	"gbl-api/controllers/score"
-	"gbl-api/controllers/user"
-	"gbl-api/data"
-	"gbl-api/server"
+	   "gbl-api/config"
+	   "gbl-api/controllers/booth"
+	   "gbl-api/controllers/notification"
+	   "gbl-api/controllers/problem"
+	   "gbl-api/controllers/score"
+	   "gbl-api/controllers/user"
+	   "gbl-api/data"
+	   "gbl-api/server"
+	   "gbl-api/migrations"
 
-	"github.com/gin-gonic/gin"
+	   "github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -53,6 +54,10 @@ func main() {
 	db.AutoMigrate(&user.User{})
 	db.AutoMigrate(&problem.Problem{})
 	db.AutoMigrate(&notification.Notification{})
+	migrations.MigrateMaster(db)
+
+	// BoothScoreHistory 테이블 마이그레이션 추가
+	migrations.MigrateBoothScoreHistory(db)
 
 	// 등록할 비밀번호 목록들
 	passwords := []string{

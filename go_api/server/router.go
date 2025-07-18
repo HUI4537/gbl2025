@@ -2,6 +2,7 @@ package server
 
 import (
 	"gbl-api/data"
+	"gbl-api/controllers/master"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,23 +16,29 @@ func DBMiddleware() gin.HandlerFunc {
 }
 
 func CreateRouter() *gin.Engine {
-	r := gin.Default()
+	   r := gin.Default()
 
-	// 전역 미들웨어로 DB 설정
-	r.Use(DBMiddleware())
+	   // 전역 미들웨어로 DB 설정
+	   r.Use(DBMiddleware())
 
-	r.Static("/getfile/", "./upload")
+	   r.Static("/getfile/", "./upload")
 
-	api := r.Group("/api")
-	{
-		api.POST("/upload/", uploadFile)
+	   api := r.Group("/api")
+	   {
+		   api.POST("/upload/", uploadFile)
 
-		api.DELETE("/boothuser/:bid/", deleteBoothUser)
-		api.POST("/makeboothuser/", makeBoothUser)
+		   api.DELETE("/boothuser/:bid/", deleteBoothUser)
+		   api.POST("/makeboothuser/", makeBoothUser)
 
-		auth := api.Group("/auth")
-		{
-			auth.POST("/login/", authLogin)
+		   masterGroup := api.Group("/master")
+		   {
+			   masterGroup.GET("/", master.GetMasterInfo)
+			   masterGroup.POST("/", master.UpdateMasterInfo)
+		   }
+
+		   auth := api.Group("/auth")
+		   {
+			   auth.POST("/login/", authLogin)
 			auth.POST("/register/", authRegister)
 			auth.POST("/boothadmin/", authBoothAdmin)
 		}
@@ -48,6 +55,9 @@ func CreateRouter() *gin.Engine {
 			booth.POST("/adduser/", addUser)
 
 			booth.PATCH("/complexity/", setComplexity)
+
+			// 부스별 점수 지급(중복 지급 방지)
+			booth.POST("/addscore/", addBoothScore)
 		}
 
 		problem := api.Group("/problem")

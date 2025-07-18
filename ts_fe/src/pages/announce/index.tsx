@@ -1,6 +1,8 @@
 import AppLayout from "@/layouts/app-layout";
 import { Box, Typography } from "@mui/material";
 import Background from "@/components/background";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 const LayoutPage = () => {
 	return (
@@ -14,7 +16,7 @@ const LayoutPage = () => {
 					fontWeight={900}
 					color={"rgb(230, 230, 230)"}
 				>
-					GBL2024
+					{useSelector((state: RootState) => state.siteinfo.siteTitle)}
 				</Typography>
 				<Typography fontSize={"35px"} ml={"25px"} fontWeight={900}>
 					부스 배치도

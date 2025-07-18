@@ -173,6 +173,13 @@ export const CustomSelect = ({
 };
 
 const MakeBoothPage = () => {
+	// 포스터 파일 업로드 핸들러
+	const handlePosterFileUpload = async (file: File) => {
+		setFileList((prev) => ({
+			...prev,
+			poster: file
+		}));
+	};
 	const element_height_ref = useElementHeight();
 	const router = useRouter();
 
@@ -205,11 +212,14 @@ const MakeBoothPage = () => {
 	});
 	const AdminAuthState = useSelector((state: RootState) => state.adminauth);
 	const dispatch = useDispatch();
+	const siteTitle = useSelector((state: RootState) => state.siteinfo.siteTitle);
 
 	const [fileList, setFileList] = useState<{
-		thumbnail: File | null;
+	thumbnail: File | null;
+	poster: File | null;
 	}>({
-		thumbnail: null
+	thumbnail: null,
+	poster: null
 	});
 
 	const validateData = (): string[] => {
@@ -287,7 +297,7 @@ const MakeBoothPage = () => {
 			return;
 		}
 
-		// 썸네일 파일 업로
+		// 썸네일 파일 업로드
 		const ThumbnailformData = new FormData();
 		if (fileList.thumbnail) {
 			ThumbnailformData.append("file", fileList.thumbnail);
@@ -301,42 +311,68 @@ const MakeBoothPage = () => {
 			return;
 		}
 
+		// 포스터 파일 업로드
+		const projectposterformData = new FormData();
+		if (fileList.poster) {
+			projectposterformData.append("file", fileList.poster);
+		} else {
+			SetSnackbarInfo({
+				...SnackbarInfo,
+				open: true,
+				text: "프로젝트 이미지를 선택해주세요.",
+				severity: "warning"
+			});
+			return;
+		}
+
+		// 썸네일 업로드 → 포스터 업로드 → 부스 생성
 		fileUpload(ThumbnailformData, (percent: number) => {
 			Setloading({
-				msg: `이미지 업로드중입니다. ${percent}%`,
+				msg: `썸네일 업로드중입니다. ${percent}%`,
 				is_loading: true,
 			});
 		})
 			.then((res_thumbnail) => {
-				Setloading({
-					msg: `부스를 만드는중입니다.`,
-					is_loading: true,
-				});
-				
-				makeBooth({
-					bid: AdminAuthState.bid,
-					name: formData.boothName,
-					description: formData.boothDescription, 
-					video_url: formData.video_url,
-					thumbnail_url: res_thumbnail.data.file,
-					part: formData.boothField,
-					boothName: formData.boothName,
-					boothDescription: formData.boothDescription,
-					boothField: formData.boothField,
-					peopleNumber: formData.peopleNumber,
-					youtubeLink: formData.video_url,
-					time_slot: formData.time_slot.toUpperCase()
-				}).then((res) => {
-					dispatch(create());
-					SetSnackbarInfo({
-						open: true,
-						text: "부스가 성공적으로 생성되었습니다.",
-						severity: "success"
-					});
+				fileUpload(projectposterformData, (percent: number) => {
 					Setloading({
-						is_loading: false,
-						msg: ""
+						msg: `포스터 업로드중입니다. ${percent}%`,
+						is_loading: true,
 					});
+				})
+				.then((res_poster) => {
+					Setloading({
+						msg: `부스를 만드는중입니다.`,
+						is_loading: true,
+					});
+					makeBooth({
+						bid: AdminAuthState.bid,
+						name: formData.boothName,
+						description: formData.boothDescription, 
+						video_url: formData.video_url,
+						thumbnail_url: res_thumbnail.data.file,
+						poster_url: res_poster.data.file, // 추가!
+						part: formData.boothField,
+						boothName: formData.boothName,
+						boothDescription: formData.boothDescription,
+						boothField: formData.boothField,
+						peopleNumber: formData.peopleNumber,
+						youtubeLink: formData.video_url,
+						time_slot: formData.time_slot.toUpperCase()
+					}).then((res) => {
+						dispatch(create());
+						SetSnackbarInfo({
+							open: true,
+							text: "부스가 성공적으로 생성되었습니다.",
+							severity: "success"
+						});
+						Setloading({
+							is_loading: false,
+							msg: ""
+						});
+					});
+				})
+				.catch((err) => {
+					ErrHandlering(err);
 				});
 			})
 			.catch((err) => {
@@ -377,7 +413,7 @@ const MakeBoothPage = () => {
 					fontWeight={900}
 					color={"rgb(230, 230, 230)"}
 				>
-					GBL2024
+					{siteTitle}
 				</Typography>
 				<Typography fontWeight={900} variant='h4' mt={"70px"} ml={"25px"}>
 					부스만들기
@@ -418,7 +454,7 @@ const MakeBoothPage = () => {
 					></CustomInput>
 					<CustomInput
 						name='boothDescription'
-						text='필요역량'
+						text='부스 설명'
 						value={formData.boothDescription}
 						multiline
 						onChange={handleChange}
@@ -426,7 +462,7 @@ const MakeBoothPage = () => {
 					<CustomSelect
 						name='boothField'
 						label='부스 분야'
-						options={["메이커", "환경", "STEAM", "AI", "미디어", "창업"]}
+ options={["Maker", "AI + Data", "Math", "Media + Environment", "STARTUP", "STEAM"]}
 						value={formData.boothField}
 						onChange={handleChange}
 					></CustomSelect>
@@ -442,6 +478,15 @@ const MakeBoothPage = () => {
 						text='썸네일 업로드'
 						filetype='image'
 						onChange={handleThumbnailFileUpload}
+						InputLabelProps={{
+							shrink: true,
+						}}
+					/>
+					<CustomFileInput
+						name='poster'
+						text='프로젝트 포스터 사진 업로드'
+						filetype='image'
+						onChange={handlePosterFileUpload}
 						InputLabelProps={{
 							shrink: true,
 						}}

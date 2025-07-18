@@ -4,9 +4,12 @@ import (
 	"log"
 
 	"gbl-api/controllers/booth"
+	"gbl-api/migrations"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"gbl-api/controllers/score"
 )
 
 func makeBooth(c *gin.Context) {
@@ -211,4 +214,39 @@ func setComplexity(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status": "ok",
 	})
+}
+
+// 부스별 점수 지급(중복 지급 방지)
+func addBoothScore(c *gin.Context) {
+	type reqType struct {
+		UID   string `json:"uid"`
+		BID   string `json:"bid"`
+		Score int    `json:"score"`
+	}
+	var req reqType
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid request"})
+		return
+	}
+	db := c.MustGet("db").(*gorm.DB)
+	var count int64
+	db.Model(&migrations.BoothScoreHistory{}).Where("uid = ? AND bid = ?", req.UID, req.BID).Count(&count)
+	if count > 0 {
+		c.JSON(400, gin.H{"error": "이미 점수를 받았습니다."})
+		return
+	}
+	// 점수 지급 이력 저장
+	db.Create(&migrations.BoothScoreHistory{
+		UID: req.UID,
+		BID: req.BID,
+		Score: req.Score,
+		CreatedAt: time.Now(),
+	})
+	// 기존 점수 시스템에도 반영 (Participation)
+	err := score.AddScore(req.BID, req.UID, "booth_view", req.Score)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "점수 추가 실패"})
+		return
+	}
+	c.JSON(200, gin.H{"success": true})
 }

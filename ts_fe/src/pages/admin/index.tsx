@@ -1,20 +1,20 @@
 import LoginLayout from "@/layouts/login-layout";
 import Background from "@/components/background";
-import { Typography, Box, Button } from "@mui/material";
+import { Typography, Box, Button, Stack } from "@mui/material";
+import LoadingPage from "@/components/loading";
+import { boothAdminAuth } from "@/lib/auth";
+import { signOut } from "firebase/auth";
+import { auth } from "@/utils/firebaseInit";
+// 중복 import 제거
 import { useEffect, useState } from "react";
 import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import { useRouter } from "next/router";
 import InputBase from "@mui/material/InputBase";
 import Slide from "@mui/material/Slide";
-import Stack from "@mui/material/Stack";
-import { signOut } from "firebase/auth";
-import { auth } from "@/utils/firebaseInit";
-import LoadingPage from "@/components/loading";
-import { boothAdminAuth } from "@/lib/auth";
-import CustomSnackBar from "@/components/snackbar";
 import { useDispatch, useSelector } from "react-redux";
-import { login } from "@/store/adminauth-slice";
 import { RootState } from "@/store";
+import { login } from "@/store/adminauth-slice";
+import CustomSnackBar from "@/components/snackbar";
 
 const AdminLoaginPage = () => {
 	const [animation, setanimation] = useState(false);
@@ -58,21 +58,23 @@ const AdminLoaginPage = () => {
 		}
 	}, []);
 
-	return (
-		<>
-			{loading.is_loading ? (
-				<LoadingPage msg={loading.msg}></LoadingPage>
-			) : null}
+  const projectName = useSelector((state: RootState) => state.siteinfo.projectName);
+  const year = useSelector((state: RootState) => state.siteinfo.year);
+  return (
+	<>
+	  {loading.is_loading ? (
+		<LoadingPage msg={loading.msg}></LoadingPage>
+	  ) : null}
 
-			<Background></Background>
-			<LoginLayout width_pad={60} gap={4}>
-				<Box position={"fixed"} top={"100px"}>
-					<Typography fontWeight={800} variant='h2'>
-						GBL
-					</Typography>
-					<Typography fontWeight={800} variant='h2'>
-						2024
-					</Typography>
+	  <Background></Background>
+	  <LoginLayout width_pad={60} gap={4}>
+		<Box position={"fixed"} top={"100px"}>
+		  <Typography fontWeight={800} variant='h2'>
+			{projectName}
+		  </Typography>
+		  <Typography fontWeight={800} variant='h2'>
+			{year}
+		  </Typography>
 					<Typography
 						fontWeight={800}
 						variant='h4'

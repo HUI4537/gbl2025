@@ -16,6 +16,8 @@ import { getBooth, getCheck } from "@/lib/booth";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { getUser } from "@/lib/auth";
+import CustomSnackBar from '@/components/snackbar';
+import { addScore as addBoothScore } from '@/lib/booth';
 
 const YouTubeEmbed = ({ url }: { url: string }) => {
 	const getVideoId = (url: string) => {
@@ -88,6 +90,11 @@ const BoothDetail = () => {
 	const AuthState = useSelector((state: RootState) => state.auth);
 
 	const [ButtonShown, SetButtonShown] = useState(false);
+	const [SnackbarInfo, SetSnackbarInfo] = useState({
+		open: false,
+		text: '',
+		severity: 'info',
+	});
 
 	useEffect(() => {
 		if (scrollPosition.scrollTop > 3) {
@@ -145,23 +152,51 @@ const BoothDetail = () => {
 		}, 500);
 	}, []);
 
+	useEffect(() => {
+		if (!bid || !AuthState.user?.uid) return;
+		let timer = setTimeout(() => {
+			addBoothScore(AuthState.user.uid, bid, 10)
+				.then(() => {
+					SetSnackbarInfo({
+						open: true,
+						text: '점수가 10점 추가되었습니다.',
+						severity: 'success',
+					});
+				})
+				.catch((err) => {
+					SetSnackbarInfo({
+						open: true,
+						text: err?.response?.data?.error || '이미 점수가 추가되었었습니다.',
+						severity: 'warning',
+					});
+				});
+		}, 20000);
+		return () => clearTimeout(timer);
+	}, [bid, AuthState.user?.uid]);
+
 	return (
-		<Box ref={element_height_ref} overflow={"hidden"}>
-			<Box ref={scrollRef} height={"100%"} overflow={"scroll"}>
-				<AppBar
-					position='absolute'
-					elevation={0}
-					sx={{
-						backgroundColor: Scrolled
-							? "rgb(230, 230, 230)"
-							: "rgba(255, 255, 255, 0)",
-						transition: "0.3s",
-						borderBottomRightRadius: "20px",
-						borderBottomLeftRadius: "20px",
-						height: "300px",
-						transform: Scrolled ? "translateY(-230px)" : "translateY(0px)",
-					}}
-				>
+		<>
+			<CustomSnackBar
+				{...SnackbarInfo}
+				closefn={() => SetSnackbarInfo({ ...SnackbarInfo, open: false })}
+			/>
+			<Box ref={element_height_ref} overflow={"hidden"}>
+				<Box ref={scrollRef} height={"100%"} overflow={"scroll"}>
+					<AppBar
+						position='absolute'
+						elevation={0}
+						sx={{
+							backgroundColor: Scrolled
+								? "rgb(230, 230, 230)"
+								: "rgba(255, 255, 255, 0)",
+							transition: "0.3s",
+							borderBottomRightRadius: "20px",
+							borderBottomLeftRadius: "20px",
+							height: "300px",
+							transform: Scrolled ? "translateY(-230px)" : "translateY(0px)",
+						}}
+					>
+					{/** sitename 동적 출력 */}
 					<Typography
 						fontSize={"20px"}
 						position={"absolute"}
@@ -171,170 +206,205 @@ const BoothDetail = () => {
 						color={"rgb(230, 230, 230)"}
 						zIndex={100}
 					>
-						GBL2024
+						{useSelector((state: RootState) => state.siteinfo.siteTitle)}
 					</Typography>
-					{BoothInfo.thumbnail_url !== undefined ? (
-						<Image
-							fill
-							style={{
-								objectFit: "cover",
-								filter: "brightness(70%)",
-								transition: "0.3s",
-								opacity: Scrolled ? "0" : "1",
+						{BoothInfo.thumbnail_url !== undefined ? (
+							<Image
+								fill
+								style={{
+									objectFit: "cover",
+									filter: "brightness(70%)",
+									transition: "0.3s",
+									opacity: Scrolled ? "0" : "1",
+								}}
+								alt='BoothImage'
+								src={`/getfile/${BoothInfo.thumbnail_url}`}
+							></Image>
+						) : null}
+						<Toolbar
+							sx={{
+								marginBottom: "10px",
+								position: "absolute",
+								bottom: "0px",
 							}}
-							alt='BoothImage'
-							src={`/getfile/${BoothInfo.thumbnail_url}`}
-						></Image>
-					) : null}
-					<Toolbar
+						>
+							<div style={GetMaxLineProperty(2)}>
+								<Typography
+									fontSize={"40px"}
+									fontWeight={800}
+									color={Scrolled ? "rgb(100, 100, 100)" : "white"}
+									px={"10px"}
+									sx={{
+										transform: Scrolled ? "scale(0.4)" : "",
+										transformOrigin: "left bottom",
+										flexGrow: 1,
+										alignSelf: "flex-end",
+										transition: "0.3s",
+									}}
+								>
+									{BoothInfo.name}
+								</Typography>
+							</div>
+						</Toolbar>
+					</AppBar>
+					<Box height={"300px"}></Box>
+
+					<Typography variant='h6' fontWeight={800} ml={"20px"} mt={"30px"}>
+						부스 설명
+					</Typography>
+					<Typography
+						width={"calc(100% - 80px)"}
+						mt={"10px"}
+						ml={"20px"}
+						py={"20px"}
+						px='20px'
+						fontWeight={600}
+						bgcolor={"rgb(240, 240, 240)"}
+						variant='body1'
+						color='rgb(100, 100, 100)'
+						borderRadius={"10px"}
+					>
+						{BoothInfo.description}
+					</Typography>
+
+
+					<Typography variant='h6' fontWeight={800} ml={'20px'} mt={'30px'}>
+						프로젝트 포스터
+					</Typography>
+
+					
+					<Box
 						sx={{
-							marginBottom: "10px",
-							position: "absolute",
-							bottom: "0px",
+							width: 'calc(100% - 40px)',
+							ml: '20px',
+							mt: '10px',
+							mb: '10px',
+							borderRadius: '10px',
+							overflow: 'hidden',
+							bgcolor: 'rgb(240,240,240)',
+							display: 'flex',
+							justifyContent: 'center',
+							alignItems: 'center',
 						}}
 					>
-						<div style={GetMaxLineProperty(2)}>
-							<Typography
-								fontSize={"40px"}
-								fontWeight={800}
-								color={Scrolled ? "rgb(100, 100, 100)" : "white"}
-								px={"10px"}
+						<img
+							src={`/getfile/${BoothInfo.poster_url}`}
+							alt='프로젝트 포스터'
+							style={{
+								maxWidth: '100%',
+								maxHeight: '400px',
+								borderRadius: '10px',
+								objectFit: 'contain',
+								background: '#f0f0f0',
+							}}
+						/>
+					</Box>
+
+
+					<Typography variant='h6' fontWeight={800} ml={"20px"} mt={"30px"}>
+						프로젝트 소개 영상
+					</Typography>
+
+					<YouTubeEmbed url={BoothInfo.video_url} />
+
+					<Typography variant='h6' fontWeight={800} ml={"20px"} mt={"30px"}>
+						프로젝트 개요
+					</Typography>
+
+					<Box mt={"20px"}>
+						<VerticalBoxLayout>
+							<LeftTitle>부스 혼잡도</LeftTitle>
+							<RightTitle
+								color={
+									BoothInfo.complexity === 0
+										? "rgb(0, 100, 255)"
+										: "rgb(255, 68, 0)"
+								}
+							>
+								{BoothInfo.complexity === 0 ? "체험 가능" : "체험 진행중"}
+							</RightTitle>
+						</VerticalBoxLayout>
+					</Box>
+
+					<Box mt={"20px"}>
+						<VerticalBoxLayout>
+							<LeftTitle>부스 분야</LeftTitle>
+							<RightTitle color={"rgb(255, 149, 0)"}>{BoothInfo.part}</RightTitle>
+						</VerticalBoxLayout>
+					</Box>
+
+					<Box height={"200px"}></Box>
+					<Stack
+						width={"calc(100% - 40px)"}
+						ml={"20px"}
+						direction={"row"}
+						position={"sticky"}
+						bottom={"15px"}
+						height={"50px"}
+						gap={"15px"}
+					>
+						<Button
+							fullWidth
+							sx={{
+								bgcolor: "rgb(240, 240, 240)",
+								borderRadius: "10px",
+								fontSize: "16px",
+								"&:hover": {
+									bgcolor: "rgb(240, 240, 240)",
+								},
+								fontWeight: "900",
+							}}
+							disableRipple
+							onClick={() => {
+								router.push("/booth");
+							}}
+						>
+							부스목록
+						</Button>
+						{inAdded !== 2 && inParticipate !== 2 && ButtonShown ? (
+							<Button
+								fullWidth
+								disableRipple
+								variant='contained'
+								color='primary'
+								disableElevation
 								sx={{
-									transform: Scrolled ? "scale(0.4)" : "",
-									transformOrigin: "left bottom",
-									flexGrow: 1,
-									alignSelf: "flex-end",
-									transition: "0.3s",
+									borderRadius: "10px",
+									color: "white",
+									fontSize: "16px",
+									fontWeight: "900",
+								}}
+								onClick={() => {
+									router.push(`/problem/${bid}`);
 								}}
 							>
-								{BoothInfo.name}
-							</Typography>
-						</div>
-					</Toolbar>
-				</AppBar>
-				<Box height={"300px"}></Box>
-
-				<Typography variant='h6' fontWeight={800} ml={"20px"} mt={"30px"}>
-					필요 역량
-				</Typography>
-				<Typography
-					width={"calc(100% - 80px)"}
-					mt={"10px"}
-					ml={"20px"}
-					py={"20px"}
-					px='20px'
-					fontWeight={600}
-					bgcolor={"rgb(240, 240, 240)"}
-					variant='body1'
-					color='rgb(100, 100, 100)'
-					borderRadius={"10px"}
-				>
-					{BoothInfo.description}
-				</Typography>
-
-				<Typography variant='h6' fontWeight={800} ml={"20px"} mt={"30px"}>
-					프로젝트 소개 영상
-				</Typography>
-
-				<YouTubeEmbed url={BoothInfo.video_url} />
-
-				<Typography variant='h6' fontWeight={800} ml={"20px"} mt={"30px"}>
-					프로젝트 개요
-				</Typography>
-
-				<Box mt={"20px"}>
-					<VerticalBoxLayout>
-						<LeftTitle>부스 혼잡도</LeftTitle>
-						<RightTitle
-							color={
-								BoothInfo.complexity === 0
-									? "rgb(0, 100, 255)"
-									: "rgb(255, 68, 0)"
-							}
-						>
-							{BoothInfo.complexity === 0 ? "체험 가능" : "체험 진행중"}
-						</RightTitle>
-					</VerticalBoxLayout>
+								문제풀기
+							</Button>
+						) : null}
+						{inParticipate === 2 ? (
+							<Button
+								fullWidth
+								disableRipple
+								variant='contained'
+								color='primary'
+								disableElevation
+								sx={{
+									borderRadius: "10px",
+									color: "white",
+									fontSize: "16px",
+									fontWeight: "900",
+								}}
+								onClick={() => {
+									alert("이미 참여한 부스입니다.");
+								}}
+							>
+								참여한 부스
+							</Button>
+						) : null}
+					</Stack>
 				</Box>
-
-				<Box mt={"20px"}>
-					<VerticalBoxLayout>
-						<LeftTitle>부스 분야</LeftTitle>
-						<RightTitle color={"rgb(255, 149, 0)"}>{BoothInfo.part}</RightTitle>
-					</VerticalBoxLayout>
-				</Box>
-
-				<Box height={"200px"}></Box>
-				<Stack
-					width={"calc(100% - 40px)"}
-					ml={"20px"}
-					direction={"row"}
-					position={"sticky"}
-					bottom={"15px"}
-					height={"50px"}
-					gap={"15px"}
-				>
-					<Button
-						fullWidth
-						sx={{
-							bgcolor: "rgb(240, 240, 240)",
-							borderRadius: "10px",
-							fontSize: "16px",
-							"&:hover": {
-								bgcolor: "rgb(240, 240, 240)",
-							},
-							fontWeight: "900",
-						}}
-						disableRipple
-						onClick={() => {
-							router.push("/booth");
-						}}
-					>
-						부스목록
-					</Button>
-					{inAdded !== 2 && inParticipate !== 2 && ButtonShown ? (
-						<Button
-							fullWidth
-							disableRipple
-							variant='contained'
-							color='primary'
-							disableElevation
-							sx={{
-								borderRadius: "10px",
-								color: "white",
-								fontSize: "16px",
-								fontWeight: "900",
-							}}
-							onClick={() => {
-								router.push(`/problem/${bid}`);
-							}}
-						>
-							문제풀기
-						</Button>
-					) : null}
-					{inParticipate === 2 ? (
-						<Button
-							fullWidth
-							disableRipple
-							variant='contained'
-							color='primary'
-							disableElevation
-							sx={{
-								borderRadius: "10px",
-								color: "white",
-								fontSize: "16px",
-								fontWeight: "900",
-							}}
-							onClick={() => {
-								alert("이미 참여한 부스입니다.");
-							}}
-						>
-							참여한 부스
-						</Button>
-					) : null}
-				</Stack>
 			</Box>
-		</Box>
+		</>
 	);
 };
 

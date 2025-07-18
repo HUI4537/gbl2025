@@ -1,8 +1,10 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Box, Button, InputBase, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
+
+import { getMasterInfo, updateMasterInfo } from "@/lib/master";
 import { setSiteInfo } from "@/store/siteinfo-slice";
 
 
@@ -40,22 +42,43 @@ const MasterPage = () => {
   const [applied, setApplied] = useState(false);
   const [formError, setFormError] = useState("");
 
-  const handleApply = () => {
+  const handleApply = async () => {
     if (!siteTitle || !projectName || !year) {
       setFormError("모든 항목을 입력해 주세요.");
       setApplied(false);
       return;
     }
     setFormError("");
-    dispatch(
-      setSiteInfo({
-        siteTitle,
-        projectName,
-        year,
-      })
-    );
-    setApplied(true);
+    try {
+      await updateMasterInfo({
+        sitename: siteTitle,
+        projectname: projectName,
+        year: Number(year),
+      });
+      dispatch(
+        setSiteInfo({
+          siteTitle,
+          projectName,
+          year,
+        })
+      );
+      setApplied(true);
+    } catch (e) {
+      setFormError("저장에 실패했습니다.");
+      setApplied(false);
+    }
   };
+
+  // 인증 성공 시 마스터 정보 불러오기
+  React.useEffect(() => {
+    if (authed) {
+      getMasterInfo().then((data) => {
+        setSiteTitle(data.sitename || "");
+        setProjectName(data.projectname || "");
+        setYear(data.year ? String(data.year) : "");
+      });
+    }
+  }, [authed]);
 
   if (authed) {
     return (

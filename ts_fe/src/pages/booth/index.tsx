@@ -1,5 +1,7 @@
 import AppLayout from "@/layouts/app-layout";
 import { Typography, InputBase, Box, Slide, ButtonGroup, Button } from "@mui/material";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 import Header from "@/components/header";
 import Background from "@/components/background";
 import useScroll from "@/hooks/useScroll";
@@ -99,27 +101,28 @@ const BoothListPage = () => {
 		setBoothState(prev => ({ ...prev, timeSlot: slot }));
 	};
 
-	return (
-		<>
-			<QRCodePage
-				open={uiState.openModal}
-				closeQr={() => handleModal(false)}
-				openQr={() => handleModal(true)}
-			/>
-			<ProgressBar value={uiState.progress} />
-			<Background />
+   const siteTitle = useSelector((state: RootState) => state.siteinfo.siteTitle);
+   return (
+	   <>
+		   <QRCodePage
+			   open={uiState.openModal}
+			   closeQr={() => handleModal(false)}
+			   openQr={() => handleModal(true)}
+		   />
+		   <ProgressBar value={uiState.progress} />
+		   <Background />
 
-			<AppLayout scroll_ref={scrollRef}>
-				<Typography
-					fontSize="20px"
-					position="absolute"
-					top="25px"
-					left="25px"
-					fontWeight={900}
-					color="rgb(230, 230, 230)"
-				>
-					GBL2024
-				</Typography>
+		   <AppLayout scroll_ref={scrollRef}>
+			   <Typography
+				   fontSize="20px"
+				   position="absolute"
+				   top="25px"
+				   left="25px"
+				   fontWeight={900}
+				   color="rgb(230, 230, 230)"
+			   >
+				   {siteTitle}
+			   </Typography>
 				<Header openModal={() => handleModal(true)} hide={uiState.scrolled} />
 
 				<InputBase

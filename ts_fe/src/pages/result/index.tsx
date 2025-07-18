@@ -2,30 +2,34 @@ import Background from "@/components/background";
 import useElementHeight from "@/hooks/useElementHeight";
 import AppLayout from "@/layouts/app-layout";
 import {
-	Box,
-	Button,
-	Card,
-	CardContent,
-	Stack,
-	Typography,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Stack,
+  Typography,
 } from "@mui/material";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 import { useRouter } from "next/router";
 
 const ResultPage = () => {
 	const element_height_ref = useElementHeight();
 	const router = useRouter();
-	return (
-		<Box ref={element_height_ref} overflow={"scroll"}>
-			<Background></Background>
-			<Typography
-				fontSize={"20px"}
-				mt={"25px"}
-				ml={"25px"}
-				fontWeight={900}
-				color={"rgb(230, 230, 230)"}
-			>
-				GBL2024
-			</Typography>
+  const projectName = useSelector((state: RootState) => state.siteinfo.projectName);
+  const year = useSelector((state: RootState) => state.siteinfo.year);
+  return (
+	<Box ref={element_height_ref} overflow={"scroll"}>
+	  <Background></Background>
+	  <Typography
+		fontSize={"20px"}
+		mt={"25px"}
+		ml={"25px"}
+		fontWeight={900}
+		color={"rgb(230, 230, 230)"}
+	  >
+		{projectName}{year}
+	  </Typography>
 			<Typography fontWeight={900} variant='h4' ml={"25px"}>
 				채점 결과
 			</Typography>

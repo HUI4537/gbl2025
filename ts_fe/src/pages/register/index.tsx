@@ -63,7 +63,7 @@ const CustomSelect = ({
 const RegisterPage = () => {
 	const element_height_ref = useElementHeight();
 
-	const [formData, setFormData] = useState("메이커");
+const [formData, setFormData] = useState("Maker");
 	const [loading, setloading] = useState(false);
 	const AuthState = useSelector((state: RootState) => state.auth);
 	const dispatch = useDispatch();
@@ -117,7 +117,7 @@ const RegisterPage = () => {
 					<CustomSelect
 						name='boothField'
 						label='부스 분야'
-						options={["메이커", "환경", "STEAM", "AI", "미디어", "창업"]}
+ options={["Maker", "AI + Data", "Math", "Media + Environment", "STARTUP", "STEAM"]}
 						value={formData}
 						onChange={(e: any) => {
 							setFormData(e.target.value);

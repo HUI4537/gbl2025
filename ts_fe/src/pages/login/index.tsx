@@ -43,12 +43,13 @@ const LoginPage = () => {
 			<Background></Background>
 			<LoginLayout width_pad={60} gap={4}>
 				<Box position={"fixed"} top={"100px"}>
-					<Typography fontWeight={800} variant='h2'>
-						GBL
-					</Typography>
-					<Typography fontWeight={800} variant='h2' mb={"50px"}>
-						2024
-					</Typography>
+				{/** 동적 출력 */}
+				<Typography fontWeight={800} variant='h2'>
+					{useSelector((state: RootState) => state.siteinfo.projectName)}
+				</Typography>
+				<Typography fontWeight={800} variant='h2' mb={"50px"}>
+					{useSelector((state: RootState) => state.siteinfo.year)}
+				</Typography>
 					<Typography
 						fontWeight={400}
 						variant='subtitle2'

@@ -67,21 +67,34 @@ const MyApp = ({ Component, pageProps }: MyAppProps) => {
 	);
 };
 
+import { useDispatch } from "react-redux";
+import { setSiteInfo } from "@/store/siteinfo-slice";
+import { getMasterInfo } from "@/lib/master";
 function MyAppWithTitle({ Component, pageProps, ProgressState }: any) {
-	const siteTitle = useSelector((state: any) => state.siteinfo.siteTitle);
-	return (
-		<>
-			<Head>
-				<title>{siteTitle || "GBL2025"}</title>
-				<link rel='shortcut icon' href='/favicon.ico' />
-				<link rel='manifest' href='/manifest.json' />
-			</Head>
-			{ProgressState ? <LoadingPage /> : null}
-			<AuthProvider>
-				<Component {...pageProps} />
-			</AuthProvider>
-		</>
-	);
+  const siteTitle = useSelector((state: any) => state.siteinfo.siteTitle);
+  const dispatch = useDispatch();
+  useEffect(() => {
+	getMasterInfo().then(data => {
+	  dispatch(setSiteInfo({
+		siteTitle: data.sitename,
+		projectName: data.projectname,
+		year: String(data.year),
+	  }));
+	});
+  }, [dispatch]);
+  return (
+	<>
+	  <Head>
+		<title>{siteTitle || "GBL2025"}</title>
+		<link rel='shortcut icon' href='/favicon.ico' />
+		<link rel='manifest' href='/manifest.json' />
+	  </Head>
+	  {ProgressState ? <LoadingPage /> : null}
+	  <AuthProvider>
+		<Component {...pageProps} />
+	  </AuthProvider>
+	</>
+  );
 }
 
 export default MyApp;

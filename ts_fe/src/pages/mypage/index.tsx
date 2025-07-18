@@ -49,16 +49,16 @@ const MyPage = () => {
 
 	return (
 		<AppLayout>
-			<Typography
-				fontSize={"20px"}
-				position={"absolute"}
-				top={"25px"}
-				left={"25px"}
-				fontWeight={900}
-				color={"rgb(230, 230, 230)"}
-			>
-				GBL2024
-			</Typography>
+				<Typography
+					fontSize={"20px"}
+					position={"absolute"}
+					top={"25px"}
+					left={"25px"}
+					fontWeight={900}
+					color={"rgb(230, 230, 230)"}
+				>
+					{useSelector((state: RootState) => state.siteinfo.siteTitle)}
+				</Typography>
 
 			<Profile {...AuthState.user}></Profile>
 			<Box>

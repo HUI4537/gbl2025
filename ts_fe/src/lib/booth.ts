@@ -6,6 +6,7 @@ interface makeBoothType {
 	description: string;
 	video_url: string;
 	thumbnail_url: string;
+	poster_url: string;
 	part: string;
 	boothName: string;
 	boothDescription: string;
