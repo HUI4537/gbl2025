@@ -155,7 +155,7 @@ const BoothDetail = () => {
 	useEffect(() => {
 		if (!bid || !AuthState.user?.uid) return;
 		let timer = setTimeout(() => {
-			addBoothScore(AuthState.user.uid, bid , 10)
+			addBoothScore(AuthState.user.uid, 10)
 				.then(() => {
 					SetSnackbarInfo({
 						open: true,
@@ -365,26 +365,7 @@ const BoothDetail = () => {
 							// 문제풀기 버튼 삭제됨
 							null
 						) : null}
-						{inParticipate === 2 ? (
-							<Button
-								fullWidth
-								disableRipple
-								variant='contained'
-								color='primary'
-								disableElevation
-								sx={{
-									borderRadius: "10px",
-									color: "white",
-									fontSize: "16px",
-									fontWeight: "900",
-								}}
-								onClick={() => {
-									alert("이미 참여한 부스입니다.");
-								}}
-							>
-								참여한 부스
-							</Button>
-						) : null}
+					
 					</Stack>
 				</Box>
 			</Box>
