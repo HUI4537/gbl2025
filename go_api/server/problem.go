@@ -57,7 +57,7 @@ func problemSubmit(c *gin.Context) {
 		s := problem.CheckAnswer(p, req.SubmitAnswer[i])
 		totalScore += s
 		scores = append(scores, s)
-		err := score.AddScore(bid, uid, p, s)
+		err := score.AddScore(bid, uid, p, "", s)
 		if err != nil {
 			log.Println(err)
 		}

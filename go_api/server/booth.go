@@ -9,7 +9,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"gbl-api/controllers/score"
 )
 
 func makeBooth(c *gin.Context) {
@@ -242,11 +241,5 @@ func addBoothScore(c *gin.Context) {
 		Score: req.Score,
 		CreatedAt: time.Now(),
 	})
-	// 기존 점수 시스템에도 반영 (Participation)
-	err := score.AddScore(req.BID, req.UID, "booth_view", req.Score)
-	if err != nil {
-		c.JSON(500, gin.H{"error": "점수 추가 실패"})
-		return
-	}
 	c.JSON(200, gin.H{"success": true})
 }
