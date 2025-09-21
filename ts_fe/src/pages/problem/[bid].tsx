@@ -329,7 +329,7 @@ function ProblemPage() {
 								transition: "0.3s",
 							}}
 						>
-							GBL2024 문제페이지
+							GBL2025 문제페이지
 						</Typography>
 						<Typography
 							fontSize={"30px"}

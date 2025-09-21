@@ -183,7 +183,7 @@ function ProblemPage() {
 								transition: "0.3s",
 							}}
 						>
-							GBL2024 문제 수정
+							GBL2025 문제 수정
 						</Typography>
 						<Typography
 							fontSize={"30px"}

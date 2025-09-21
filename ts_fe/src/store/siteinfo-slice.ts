@@ -7,9 +7,9 @@ interface SiteInfoState {
 }
 
 const initialState: SiteInfoState = {
-  siteTitle: "GBL2024",
+  siteTitle: "GBL2025",
   projectName: "GBL",
-  year: "2024",
+  year: "2025",
 };
 
 const siteInfoSlice = createSlice({

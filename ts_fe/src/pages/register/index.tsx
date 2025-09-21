@@ -97,7 +97,7 @@ const [formData, setFormData] = useState("Maker");
 					fontWeight={900}
 					color={"rgb(230, 230, 230)"}
 				>
-					GBL2024
+					GBL2025
 				</Typography>
 				<Typography fontWeight={900} variant='h4' mt={"70px"} ml={"25px"}>
 					분야를 선택해주세요.

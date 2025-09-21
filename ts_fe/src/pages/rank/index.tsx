@@ -62,7 +62,7 @@ const RankPage = () => {
 						fontWeight={900}
 						color={"rgb(230, 230, 230)"}
 					>
-						GBL2024
+						GBL2025
 					</Typography>
 					<Header title='현재 순위' hide={scrolled} disableQR></Header>
 
