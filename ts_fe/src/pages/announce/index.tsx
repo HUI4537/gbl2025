@@ -44,7 +44,7 @@ const LayoutPage = () => {
 						</Typography>
 						<Box
 							component="img"
-							src="/images/layout-a.jpg"
+							src="/images/layout-a.png"
 							alt="A타임 부스 배치도"
 							sx={{
 								width: '100%',
