@@ -1,28 +1,81 @@
 package server
 
 import (
+	"errors"
 	"log"
+	"strings"
+	"time"
 
 	"gbl-api/controllers/booth"
 	"gbl-api/migrations"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
+type makeBoothRequest struct {
+	BID          string `json:"bid" binding:"required"`
+	Name         string `json:"name" binding:"required"`
+	Description  string `json:"description" binding:"required"`
+	Part         string `json:"part" binding:"required"`
+	VideoURL     string `json:"video_url" binding:"required"`
+	ThumbnailURL string `json:"thumbnail_url" binding:"required"`
+	PosterURL    string `json:"poster_url" binding:"required"`
+	TimeSlot     string `json:"time_slot" binding:"required"`
+}
+
 func makeBooth(c *gin.Context) {
-	var b booth.Booth
-	err := c.BindJSON(&b)
-	if err != nil {
+	var req makeBoothRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{
 			"message": "Invalid request",
 		})
 		return
 	}
 
-	err = booth.MakeBooth(b)
+	db := c.MustGet("db").(*gorm.DB)
+
+	hasPassword, err := booth.HasBoothPasswordByBID(req.BID)
 	if err != nil {
+		log.Println(err)
+		c.JSON(500, gin.H{
+			"message": "Internal server error",
+		})
+		return
+	}
+
+	if !hasPassword {
+		c.JSON(404, gin.H{
+			"message": "Booth password not found",
+		})
+		return
+	}
+
+	if _, err := booth.GetBooth(db, req.BID); err == nil {
+		c.JSON(409, gin.H{
+			"message": "Booth already exists",
+		})
+		return
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		log.Println(err)
+		c.JSON(500, gin.H{
+			"message": "Internal server error",
+		})
+		return
+	}
+
+	newBooth := booth.Booth{
+		BID:          req.BID,
+		Name:         req.Name,
+		Description:  req.Description,
+		Part:         req.Part,
+		VideoURL:     req.VideoURL,
+		ThumbnailURL: req.ThumbnailURL,
+		PosterURL:    req.PosterURL,
+		TimeSlot:     strings.ToUpper(req.TimeSlot),
+	}
+
+	if err := booth.MakeBooth(newBooth); err != nil {
 		log.Println(err)
 		c.JSON(500, gin.H{
 			"message": "Internal server error",
@@ -236,9 +289,9 @@ func addBoothScore(c *gin.Context) {
 	}
 	// 점수 지급 이력 저장
 	db.Create(&migrations.BoothScoreHistory{
-		UID: req.UID,
-		BID: req.BID,
-		Score: req.Score,
+		UID:       req.UID,
+		BID:       req.BID,
+		Score:     req.Score,
 		CreatedAt: time.Now(),
 	})
 	c.JSON(200, gin.H{"success": true})

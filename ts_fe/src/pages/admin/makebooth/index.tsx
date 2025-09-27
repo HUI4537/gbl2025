@@ -249,19 +249,27 @@ const MakeBoothPage = () => {
 		});
 	};
 
-	const ErrHandlering = (err: any) => {
-		console.log(err);
-		SetSnackbarInfo({
-			...SnackbarInfo,
-			open: true,
-			text: `오류가 발생했습니다. ${err.response.data.error}`,
-			severity: "warning",
-		});
-		Setloading({
-			...loading,
-			is_loading: false,
-		});
-	};
+        const ErrHandlering = (err: any) => {
+                console.log(err);
+                const message =
+                        err?.response?.data?.message ||
+                        err?.response?.data?.error ||
+                        err?.message ||
+                        "오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+
+                SetSnackbarInfo((prev) => ({
+                        ...prev,
+                        open: true,
+                        text: message,
+                        severity: "error",
+                }));
+
+                Setloading((prev) => ({
+                        ...prev,
+                        is_loading: false,
+                        msg: "",
+                }));
+        };
 
 	const onSubmit = () => {
 		Setloading({
@@ -299,31 +307,41 @@ const MakeBoothPage = () => {
 
 		// 썸네일 파일 업로드
 		const ThumbnailformData = new FormData();
-		if (fileList.thumbnail) {
-			ThumbnailformData.append("file", fileList.thumbnail);
-		} else {
-			SetSnackbarInfo({
-				...SnackbarInfo,
-				open: true,
-				text: "썸네일 이미지를 선택해주세요.",
-				severity: "warning"
-			});
-			return;
-		}
+                if (fileList.thumbnail) {
+                        ThumbnailformData.append("file", fileList.thumbnail);
+                } else {
+                        SetSnackbarInfo({
+                                ...SnackbarInfo,
+                                open: true,
+                                text: "썸네일 이미지를 선택해주세요.",
+                                severity: "warning"
+                        });
+                        Setloading((prev) => ({
+                                ...prev,
+                                is_loading: false,
+                                msg: "",
+                        }));
+                        return;
+                }
 
 		// 포스터 파일 업로드
 		const projectposterformData = new FormData();
-		if (fileList.poster) {
-			projectposterformData.append("file", fileList.poster);
-		} else {
-			SetSnackbarInfo({
-				...SnackbarInfo,
-				open: true,
-				text: "프로젝트 이미지를 선택해주세요.",
-				severity: "warning"
-			});
-			return;
-		}
+                if (fileList.poster) {
+                        projectposterformData.append("file", fileList.poster);
+                } else {
+                        SetSnackbarInfo({
+                                ...SnackbarInfo,
+                                open: true,
+                                text: "프로젝트 이미지를 선택해주세요.",
+                                severity: "warning"
+                        });
+                        Setloading((prev) => ({
+                                ...prev,
+                                is_loading: false,
+                                msg: "",
+                        }));
+                        return;
+                }
 
 		// 썸네일 업로드 → 포스터 업로드 → 부스 생성
 		fileUpload(ThumbnailformData, (percent: number) => {
@@ -344,12 +362,12 @@ const MakeBoothPage = () => {
 						msg: `부스를 만드는중입니다.`,
 						is_loading: true,
 					});
-					makeBooth({
-						bid: AdminAuthState.bid,
-						name: formData.boothName,
-						description: formData.boothDescription, 
-						video_url: formData.video_url,
-						thumbnail_url: res_thumbnail.data.file,
+                                        makeBooth({
+                                                bid: AdminAuthState.bid,
+                                                name: formData.boothName,
+                                                description: formData.boothDescription,
+                                                video_url: formData.video_url,
+                                                thumbnail_url: res_thumbnail.data.file,
 						poster_url: res_poster.data.file, // 추가!
 						part: formData.boothField,
 						boothName: formData.boothName,
@@ -357,23 +375,25 @@ const MakeBoothPage = () => {
 						boothField: formData.boothField,
 						peopleNumber: formData.peopleNumber,
 						youtubeLink: formData.video_url,
-						time_slot: formData.time_slot.toUpperCase()
-					}).then((res) => {
-						dispatch(create());
-						SetSnackbarInfo({
-							open: true,
-							text: "부스가 성공적으로 생성되었습니다.",
-							severity: "success"
-						});
-						Setloading({
-							is_loading: false,
-							msg: ""
-						});
-					});
-				})
-				.catch((err) => {
-					ErrHandlering(err);
-				});
+                                                time_slot: formData.time_slot.toUpperCase()
+                                        })
+                                                .then((res) => {
+                                                        dispatch(create());
+                                                        SetSnackbarInfo({
+                                                                open: true,
+                                                                text: "부스가 성공적으로 생성되었습니다.",
+                                                                severity: "success"
+                                                        });
+                                                        Setloading({
+                                                                is_loading: false,
+                                                                msg: ""
+                                                        });
+                                                })
+                                                .catch(ErrHandlering);
+                                })
+                                .catch((err) => {
+                                        ErrHandlering(err);
+                                });
 			})
 			.catch((err) => {
 				ErrHandlering(err);
