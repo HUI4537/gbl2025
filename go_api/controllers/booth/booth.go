@@ -47,6 +47,16 @@ func GetBoothIdByPassword(password string) (string, error) {
 	}
 }
 
+func HasBoothPasswordByBID(bid string) (bool, error) {
+	db := data.GetDatabase()
+	var count int64
+	if err := db.Model(&BoothPassword{}).Where("bid = ?", bid).Count(&count).Error; err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
 func DeleteBooth(bid string) error {
 	db := data.GetDatabase()
 	return db.Delete(&Booth{}, "bid = ?", bid).Error
