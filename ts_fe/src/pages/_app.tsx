@@ -31,8 +31,7 @@ const requestPermission = async () => {
 				console.log("Notification permission granted.");
 				const messaging = getMessaging(app);
 				getToken(messaging, {
-					vapidKey:
-						"BPRao46BmgKMG8_mQdvRszDCg8G4rSkL9JN41Zn_Y1Lop2qMDqagV2Z32a4ZcTN-QeW8AUy-Is3QZuBM4ldLqY0",
+					vapidKey: process.env.NEXT_PUBLIC_MESSAGING_KEY,
 				}).then((currentToken) => {
 					if (currentToken) {
 						console.log("currentToken: ", currentToken);
