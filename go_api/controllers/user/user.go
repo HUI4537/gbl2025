@@ -1,22 +1,15 @@
 package user
 
 import (
-	"errors"
-
 	"gbl-api/controllers/booth"
 	"gbl-api/controllers/score"
 	"gbl-api/data"
-	"gorm.io/gorm"
 )
 
 func GetNameFromUID(uid string) (string, error) {
 	var user User
 	db := data.GetDatabase()
 	err := db.Where("uid = ?", uid).First(&user).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return uid, nil
-	}
-
 	return user.Name, err
 }
 
@@ -24,18 +17,16 @@ func GetLastBoothFromUID(uid string) (string, error) {
 	var participation score.Participation
 	db := data.GetDatabase()
 	err := db.Where("uid = ?", uid).Last(&participation).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return "", nil
-	} else if err != nil {
+	if err != nil {
 		return "", err
 	}
 
 	b, err := booth.GetBooth(db, participation.BID)
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return "", nil
+	if err != nil {
+		return "", err
 	}
 
-	return b.Name, err
+	return b.Name, nil
 }
 
 func checkBoothVisited(b string, bs []string) bool {

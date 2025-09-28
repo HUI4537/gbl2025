@@ -1,37 +1,24 @@
 package booth
 
 import (
-	"gbl-api/data"
-	"log"
 	"math/rand"
 
+	"gbl-api/data"
 	"gorm.io/gorm"
 )
 
-func GetBooths() (map[string]interface{}, error) {
+func GetBooths() ([]Booth, error) {
 	db := data.GetDatabase()
 	var booths []Booth
 	err := db.Find(&booths).Error
-	if err != nil {
-		log.Printf("DB 조회 오류: %v", err)
-		return nil, err
-	}
-	log.Printf("조회된 부스 수: %d", len(booths))
-
-	// 클라이언트가 기대하는 형식으로 응답 구조화
-	response := map[string]interface{}{
-		"boothlist": booths,
-	}
-
-	return response, nil
+	return booths, err
 }
 
-func GetBooth(db *gorm.DB, bid string) (*Booth, error) {
+func GetBooth(bid string) (Booth, error) {
+	db := data.GetDatabase()
 	var booth Booth
-	if err := db.Where("bid = ?", bid).First(&booth).Error; err != nil {
-		return nil, err
-	}
-	return &booth, nil
+	err := db.Where("bid = ?", bid).First(&booth).Error
+	return booth, err
 }
 
 func GetBoothIdByPassword(password string) (string, error) {
@@ -79,13 +66,15 @@ func DeletePasswordByBID(bid string) error {
 	return db.Delete(&BoothPassword{}, "bid = ?", bid).Error
 }
 
-func AddUIDToBooth(db *gorm.DB, bid string, uid string) error {
+func AddUidToBooth(bid string, uid string) error {
+	db := data.GetDatabase()
 	var booth Booth
-	if err := db.Where("bid = ?", bid).First(&booth).Error; err != nil {
+	err := db.Where("bid = ?", bid).First(&booth).Error
+	if err != nil {
 		return err
 	}
 	booth.UIDs = append(booth.UIDs, uid)
-	return db.Save(&booth).Error
+	return db.Where("bid = ?", bid).Save(&booth).Error
 }
 
 func SetComplexity(bid string, complexity int) error {
@@ -112,12 +101,4 @@ func IsUidInBooth(bid string, uid string) (bool, error) {
 		}
 	}
 	return false, nil
-}
-
-func CreateBooth(booth *Booth) error {
-	db := data.GetDatabase()
-	if booth.TimeSlot == "" {
-		booth.TimeSlot = "A"
-	}
-	return db.Create(booth).Error
 }

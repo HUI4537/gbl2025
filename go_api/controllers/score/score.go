@@ -54,25 +54,16 @@ func updateUserScores() {
 	lastScoresUpdate = time.Now()
 }
 
-// Type 필터를 받아 해당 지급 방식만 합산하는 함수
-func GetTotalScoreByType(uid string, types ...string) (int, error) {
-	db := data.GetDatabase()
-	var scores []Participation
-	if len(types) == 0 {
-		db.Where("uid = ?", uid).Find(&scores)
-	} else {
-		db.Where("uid = ? AND type IN ?", uid, types).Find(&scores)
-	}
-	total := 0
-	for _, s := range scores {
-		total += s.Score
-	}
-	return total, nil
-}
-
-// 기존 GetTotalScore는 모든 Type을 합산
 func GetTotalScore(uid string) (int, error) {
-	return GetTotalScoreByType(uid)
+	if time.Now().Sub(lastScoresUpdate) > time.Second {
+		updateUserScores()
+	}
+
+	score, ok := userScores[uid]
+	if !ok {
+		return 0, nil
+	}
+	return score, nil
 }
 
 func GetRank(uid string) (int, error) {
@@ -123,12 +114,11 @@ func GetUserScores(uid string) (map[string]int, error) {
 	return userScores, nil
 }
 
-func AddScore(bid, uid, scoreType, pid string, score int) error {
+func AddScore(bid, uid, pid string, score int) error {
 	db := data.GetDatabase()
 	return db.Create(&Participation{
 		BID:   bid,
 		UID:   uid,
-		Type:  scoreType,
 		PID:   pid,
 		Score: score,
 	}).Error

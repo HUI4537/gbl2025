@@ -5,13 +5,13 @@
  // Initialize the Firebase app in the service worker by passing the generated config
 
  const firebaseConfig = {
-	apiKey: "AIzaSyB06ZvqghKGdL1SKXcSpS6dmOlMkGQI9Mk",
-	authDomain:"gbl2023.firebaseapp.com",
-	databaseURL: "https://gbl2023-default-rtdb.firebaseio.com",
-	projectId: "gbl2023",
-	storageBucket: "gbl2023.appspot.com",
+	apiKey: "AIzaSyAUTzercEsSaUvFQmTIgZi1Oi3ZQ7VHKD8",
+	authDomain:"gbl2025-fcc16.firebaseapp.com",
+	databaseURL: "https://gbl2025-fcc16-default-rtdb.firebaseio.com",
+	projectId: "gbl2025-fcc16",
+	storageBucket: "gbl2025-fcc16.appspot.com",
 	messagingSenderId: "150648494906",
-	appId: "1:150648494906:web:78c00036f883cd18318e03",
+	appId: "1:659066419342:web:b615e38e021c8d2da5b1df",
 };
 
 

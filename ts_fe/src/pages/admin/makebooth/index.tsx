@@ -39,21 +39,28 @@ export const CustomFileInput = ({
 }) => {
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const maxSize = 500 * 1024 * 1024;
-
 		const file = event.target.files?.[0];
 		if (file) {
 			if (file.size > maxSize) {
 				alert("파일 용량이 500MB를 넘을 수 없습니다.");
 				event.target.value = "";
 			} else {
-				if (file.type.search(filetype) === -1) {
-					alert(
-						filetype + "에 해당하는 파일이 아닙니다. 파일을 다시 선택해주세요."
-					);
-					event.target.value = "";
+				// 프로젝트 포스터(pdf)만 허용
+				if (name === "poster") {
+					if (file.type !== "application/pdf") {
+						alert("프로젝트 포스터는 PDF 파일만 업로드 가능합니다.");
+						event.target.value = "";
+						return;
+					}
 				} else {
-					onChange(file);
+					// 썸네일 등 이미지 파일만 허용
+					if (file.type.search(filetype) === -1) {
+						alert(filetype + "에 해당하는 파일이 아닙니다. 파일을 다시 선택해주세요.");
+						event.target.value = "";
+						return;
+					}
 				}
+				onChange(file);
 			}
 		}
 	};
@@ -250,35 +257,34 @@ const MakeBoothPage = () => {
 	};
 
 	const ErrHandlering = (err: any) => {
-		console.log(err);
+		console.error("에러 발생:", err);
 		SetSnackbarInfo({
-			...SnackbarInfo,
 			open: true,
-			text: `오류가 발생했습니다. ${err.response.data.error}`,
+			text: `오류가 발생했습니다. ${err?.response?.data?.error || err?.message || "알 수 없는 오류"}`,
 			severity: "warning",
 		});
 		Setloading({
-			...loading,
 			is_loading: false,
+			msg: ""
 		});
 	};
 
 	const onSubmit = () => {
 		Setloading({
-			...loading,
 			is_loading: true,
+			msg: "처리중입니다..."
 		});
 		
 		const valid_res = validateData();
 		if (valid_res.length !== 0) {
 			Setloading({
-				...loading,
 				is_loading: false,
+				msg: ""
 			});
 			SetSnackbarInfo({
-				...SnackbarInfo,
 				open: true,
 				text: "모든 양식을 채워주세요.",
+				severity: "warning"
 			});
 			return;
 		}
@@ -286,13 +292,13 @@ const MakeBoothPage = () => {
 		// 유튜브 URL 유효성 검사
 		if (!validateYouTubeUrl(formData.video_url)) {
 			Setloading({
-				...loading,
 				is_loading: false,
+				msg: ""
 			});
 			SetSnackbarInfo({
-				...SnackbarInfo,
 				open: true,
 				text: "올바른 유튜브 URL을 입력해주세요.",
+				severity: "warning"
 			});
 			return;
 		}
@@ -302,8 +308,11 @@ const MakeBoothPage = () => {
 		if (fileList.thumbnail) {
 			ThumbnailformData.append("file", fileList.thumbnail);
 		} else {
+			Setloading({
+				is_loading: false,
+				msg: ""
+			});
 			SetSnackbarInfo({
-				...SnackbarInfo,
 				open: true,
 				text: "썸네일 이미지를 선택해주세요.",
 				severity: "warning"
@@ -316,8 +325,11 @@ const MakeBoothPage = () => {
 		if (fileList.poster) {
 			projectposterformData.append("file", fileList.poster);
 		} else {
+			Setloading({
+				is_loading: false,
+				msg: ""
+			});
 			SetSnackbarInfo({
-				...SnackbarInfo,
 				open: true,
 				text: "프로젝트 이미지를 선택해주세요.",
 				severity: "warning"
@@ -332,43 +344,43 @@ const MakeBoothPage = () => {
 				is_loading: true,
 			});
 		})
-			.then((res_thumbnail) => {
-				fileUpload(projectposterformData, (percent: number) => {
-					Setloading({
-						msg: `포스터 업로드중입니다. ${percent}%`,
-						is_loading: true,
-					});
+		.then((res_thumbnail) => {
+			fileUpload(projectposterformData, (percent: number) => {
+				Setloading({
+					msg: `포스터 업로드중입니다. ${percent}%`,
+					is_loading: true,
+				});
+			})
+			.then((res_poster) => {
+				Setloading({
+					msg: `부스를 만드는중입니다.`,
+					is_loading: true,
+				});
+				makeBooth({
+					bid: AdminAuthState.bid,
+					name: formData.boothName,
+					description: formData.boothDescription, 
+					video_url: formData.video_url,
+					thumbnail_url: res_thumbnail.data.file,
+					poster_url: res_poster.data.file, // 추가!
+					part: formData.boothField,
+					boothName: formData.boothName,
+					boothDescription: formData.boothDescription,
+					boothField: formData.boothField,
+					peopleNumber: formData.peopleNumber,
+					youtubeLink: formData.video_url,
+					time_slot: formData.time_slot.toUpperCase()
 				})
-				.then((res_poster) => {
-					Setloading({
-						msg: `부스를 만드는중입니다.`,
-						is_loading: true,
+				.then((res) => {
+					dispatch(create());
+					SetSnackbarInfo({
+						open: true,
+						text: "부스가 성공적으로 생성되었습니다.",
+						severity: "success"
 					});
-					makeBooth({
-						bid: AdminAuthState.bid,
-						name: formData.boothName,
-						description: formData.boothDescription, 
-						video_url: formData.video_url,
-						thumbnail_url: res_thumbnail.data.file,
-						poster_url: res_poster.data.file, // 추가!
-						part: formData.boothField,
-						boothName: formData.boothName,
-						boothDescription: formData.boothDescription,
-						boothField: formData.boothField,
-						peopleNumber: formData.peopleNumber,
-						youtubeLink: formData.video_url,
-						time_slot: formData.time_slot.toUpperCase()
-					}).then((res) => {
-						dispatch(create());
-						SetSnackbarInfo({
-							open: true,
-							text: "부스가 성공적으로 생성되었습니다.",
-							severity: "success"
-						});
-						Setloading({
-							is_loading: false,
-							msg: ""
-						});
+					Setloading({
+						is_loading: false,
+						msg: ""
 					});
 				})
 				.catch((err) => {
@@ -378,6 +390,10 @@ const MakeBoothPage = () => {
 			.catch((err) => {
 				ErrHandlering(err);
 			});
+		})
+		.catch((err) => {
+			ErrHandlering(err);
+		});
 	};
 
 	const handleGoBack = () => {
@@ -484,8 +500,8 @@ const MakeBoothPage = () => {
 					/>
 					<CustomFileInput
 						name='poster'
-						text='프로젝트 포스터 사진 업로드'
-						filetype='image'
+						text='프로젝트 포스터 PDF 업로드'
+						filetype='application/pdf'
 						onChange={handlePosterFileUpload}
 						InputLabelProps={{
 							shrink: true,

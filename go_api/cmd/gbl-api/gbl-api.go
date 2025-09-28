@@ -53,6 +53,7 @@ func main() {
 	db.AutoMigrate(&user.User{})
 	db.AutoMigrate(&problem.Problem{})
 	db.AutoMigrate(&notification.Notification{})
+	db.AutoMigrate(&score.Participation{}) // 참여 테이블 마이그레이션 추가
 	migrations.MigrateMaster(db)
 
 	// BoothScoreHistory 테이블 마이그레이션 추가
