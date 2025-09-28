@@ -45,10 +45,11 @@ export const CustomFileInput = ({
 				alert("파일 용량이 500MB를 넘을 수 없습니다.");
 				event.target.value = "";
 			} else {
-				// 프로젝트 포스터(pdf)만 허용
+				// 프로젝트 포스터(이미지) 허용
 				if (name === "poster") {
-					if (file.type !== "application/pdf") {
-						alert("프로젝트 포스터는 PDF 파일만 업로드 가능합니다.");
+					const allowedImageTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+					if (!allowedImageTypes.includes(file.type)) {
+						alert("프로젝트 포스터는 이미지 파일만 업로드 가능합니다. (JPG, PNG, GIF, WebP)");
 						event.target.value = "";
 						return;
 					}
