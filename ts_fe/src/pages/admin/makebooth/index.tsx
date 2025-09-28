@@ -500,7 +500,7 @@ const MakeBoothPage = () => {
 					/>
 					<CustomFileInput
 						name='poster'
-						text='프로젝트 포스터 PDF 업로드'
+						text='프로젝트 포스터  업로드'
 						filetype='application/pdf'
 						onChange={handlePosterFileUpload}
 						InputLabelProps={{

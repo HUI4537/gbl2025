@@ -4,7 +4,6 @@ import (
 	"gbl-api/controllers/booth"
 	"gbl-api/controllers/problem"
 	"gbl-api/controllers/score"
-	"gbl-api/data"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -42,8 +41,8 @@ func problemSubmit(c *gin.Context) {
 	}
 	uid := req.UID
 
-	db := data.GetDatabase()
-	b, err := booth.GetBooth(db, bid)
+	// db 변수 제거 (사용하지 않음)
+	b, err := booth.GetBooth(bid)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message": "Bad Request",
@@ -57,7 +56,7 @@ func problemSubmit(c *gin.Context) {
 		s := problem.CheckAnswer(p, req.SubmitAnswer[i])
 		totalScore += s
 		scores = append(scores, s)
-		err := score.AddScore(bid, uid, p, "", s)
+		err := score.AddScore(bid, uid, p, s)
 		if err != nil {
 			log.Println(err)
 		}

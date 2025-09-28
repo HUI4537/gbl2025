@@ -51,8 +51,8 @@ func getBooths(c *gin.Context) {
 
 func getBooth(c *gin.Context) {
 	bid := c.Param("bid")
-	db := c.MustGet("db").(*gorm.DB)
-	b, err := booth.GetBooth(db, bid)
+	// db 변수 제거 (사용하지 않음)
+	b, err := booth.GetBooth(bid)
 	if err != nil {
 		c.JSON(404, gin.H{
 			"message": "Booth not found",
@@ -171,8 +171,8 @@ func addUser(c *gin.Context) {
 		return
 	}
 
-	db := c.MustGet("db").(*gorm.DB)
-	err = booth.AddUIDToBooth(db, req.BID, req.UID)
+	// db 변수 제거 (사용하지 않음)
+	err = booth.AddUidToBooth(req.BID, req.UID)
 	if err != nil {
 		log.Println(err)
 		c.JSON(500, gin.H{

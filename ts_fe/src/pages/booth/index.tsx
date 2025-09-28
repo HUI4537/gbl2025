@@ -46,7 +46,7 @@ const BoothListPage = () => {
 	const refreshBoothList = useCallback(async () => {
 		try {
 			const res = await getBooths();
-			const boothlistData = res.data?.boothlist?.boothlist || [];
+			const boothlistData = res.data?.boothlist || [];
 
 			if (!Array.isArray(boothlistData)) {
 				console.error("부스 데이터가 배열이 아닙니다:", boothlistData);

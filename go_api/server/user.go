@@ -93,10 +93,10 @@ func userInfo(c *gin.Context) {
 	}
 
 	var history []historyType
-	db := c.MustGet("db").(*gorm.DB)
+	// db 변수 제거 (사용하지 않음)
 
 	for k, v := range boothScores {
-		b, err := booth.GetBooth(db, k)
+	b, err := booth.GetBooth(k)
 		if err != nil {
 			log.Println(err)
 			c.JSON(500, gin.H{
@@ -143,8 +143,8 @@ func authBoothAdmin(c *gin.Context) {
 		return
 	}
 
-	db := c.MustGet("db").(*gorm.DB)
-	_, err = booth.GetBooth(db, bid)
+	// db 변수 제거 (사용하지 않음)
+	_, err = booth.GetBooth(bid)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(200, gin.H{

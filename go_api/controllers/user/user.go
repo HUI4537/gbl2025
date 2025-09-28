@@ -21,7 +21,7 @@ func GetLastBoothFromUID(uid string) (string, error) {
 		return "", err
 	}
 
-	b, err := booth.GetBooth(db, participation.BID)
+	b, err := booth.GetBooth(participation.BID)
 	if err != nil {
 		return "", err
 	}
@@ -48,7 +48,7 @@ func GetBoothHistoryFromUID(uid string) ([]string, error) {
 
 	var history []string
 	for _, participation := range participations {
-		b, err := booth.GetBooth(db, participation.BID)
+		b, err := booth.GetBooth(participation.BID)
 		if err != nil {
 			return nil, err
 		}
